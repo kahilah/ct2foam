@@ -1,0 +1,22 @@
+- comment everything out
+
+- create a main function with arguments
+
+- check molar consistency in definition
+
+- check that gas constant is correct units.
+
+- Make a function eval_reference_data()
+
+- create a class called transportDataFitter
+    - fit_Sutherland()
+    - fit_Euken
+
+- create a class called thermoDataFitter
+    - fit_NASA_polynomials()
+
+- create a plotting class
+
+- create OF writer
+
+- add support for making fits for mixtures like air and EGR.
