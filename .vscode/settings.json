@@ -1,0 +1,4 @@
+{
+    "python.pythonPath": "/home/peksa/miniconda3/envs/cantera/bin/python",
+    "python.linting.enabled": true
+}

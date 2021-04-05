@@ -4,6 +4,7 @@ import os
 
 from thermo_transport import  ct_properties
 from thermo_transport import  transport_fitter as tr_fitter
+from thermo_transport import  thermo_fitter as th_fitter
 
         
 
@@ -29,4 +30,18 @@ if(__name__ == '__main__'):
     #As, Ts, std_err = tr_fitter.fit_sutherland(thermo.T, mix_data[0]["mu"])
     #err_mu_sutherland, err_kappa_sutherland = tr_fitter.error_sutherland(mix_data[0]["mu"], mix_data[0]["kappa"], thermo.T, As, Ts, mix_data[1]["cv_mass"], mix_data[1]["cv_mole"], thermo.R)
 
+
+    nasa_polys = th_fitter.nasaPolynomials()
+    test=nasa_polys.refit_nasapolys(thermo.nasa_coeffs, 1000.0)
+    print(test)
+
+    Tc_i = np.where(thermo.T==1000.0)[0][0]
+    # - enthalpy of formation and entropy at standard conditions are required by definition
+    cp0_over_R =  thermo.gas.species(thermo.gas.species_index("H2")).thermo.cp(298.15)/thermo.R # this calls molar cp <==> consistent
+    dhf_by_R =  thermo.gas.species(thermo.gas.species_index("H2")).thermo.h(298.15)/thermo.R
+    s0_by_R =  thermo.gas.species(thermo.gas.species_index("H2")).thermo.s(298.15)/thermo.R
+    cp_over_R = thermo.cp[0,:]/thermo.R
+    h_over_RT = thermo.h[0,:]/(thermo.T*thermo.R)
+    s_over_R = thermo.s[0,:]/thermo.R
+    coeffs = nasa_polys.fit_nasapolys_0(thermo.T,Tc_i,cp_over_R,h_over_RT,s_over_R,cp0_over_R,dhf_by_R,s0_by_R) 
 
