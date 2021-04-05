@@ -1,19 +1,31 @@
-- comment everything out
 
-- create a main function with arguments
+- make warnings red 
 
-- check molar consistency in definition
+- fix variable naming
 
-- check that gas constant is correct units.
+- init-dirs on nyt ct_propertiesin alla
 
-- Make a function eval_reference_data()
+- write to output files that they are originating from XX mechanism, made by this tool at this date
 
-- create a class called transportDataFitter
-    - fit_Sutherland()
-    - fit_Euken
+- make test to ensure that fitting is valid
+
+- check that Euken cv values are correct or if you'd get rid of cv_mass cv_mole
 
 - create a class called thermoDataFitter
     - fit_NASA_polynomials()
+
+    - build_matrices
+    - build_constraints
+
+
+        try:  
+            shutil.rmtree('fit_validation_figs/')
+        except OSError:  
+            None
+        try:  
+            os.makedirs('fit_validation_figs/')
+        except OSError:  
+            None
 
 - create a plotting class
 

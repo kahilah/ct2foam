@@ -18,7 +18,7 @@
 
 import cantera as ct
 import numpy as np
-'''
+
 import os
 import shutil
 import writing_routines as wr
@@ -420,4 +420,4 @@ for sp_i in gas.species_names:
                 output.write("\t\t" + elem_i+"\t"+repr(int(na))+';\n')                
         #############################################################################
         output.write('\t}\n}\n\n')
-'''
+
