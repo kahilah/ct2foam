@@ -47,8 +47,8 @@ def fit_polynomial(T, mu, kappa, poly_order=3, logBasis=True):
         kappa_ = np.log(kappa)
         T_ = np.log(T)
     else:
-        mu_forFit = mu
-        kappa_forFit = kappa
+        mu_ = mu
+        kappa_ = kappa
         T_ = T
 
     poly_coeffs_mu = np.polyfit(T_, mu_, poly_order)

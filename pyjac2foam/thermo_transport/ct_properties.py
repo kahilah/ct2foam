@@ -1,7 +1,6 @@
 import cantera as ct
 import numpy as np
 import os
-import bisect
 
 class ctThermoTransport:
     def __init__(self, mechanismFile, outputDir=None, T=np.linspace(280,3000,128), Tcommon=1000.0):
@@ -15,6 +14,7 @@ class ctThermoTransport:
         self.mechanismFile =  mechanismFile
         self.outputDir =  outputDir
 
+        self.T_std = 298.15
         self.T     = np.sort(T)
         self.Tcommon  =   Tcommon
         # insert Tcommon into the T array sustaining sorting
@@ -28,13 +28,16 @@ class ctThermoTransport:
         # sampling matrices of thermophysical variables (data-set per row)
         self.mu = np.zeros((self.gas.n_species, len(self.T)))
         self.kappa = np.zeros((self.gas.n_species, len(self.T)))
-        self.cp = np.zeros((self.gas.n_species, len(self.T)))
         self.cv_mass = np.zeros((self.gas.n_species, len(self.T)))
         self.cv_mole = np.zeros((self.gas.n_species, len(self.T)))
-        self.h = np.zeros((self.gas.n_species, len(self.T)))
-        self.s = np.zeros((self.gas.n_species, len(self.T)))
+        self.cp = np.zeros((self.gas.n_species, len(self.T)))       # molar
+        self.h = np.zeros((self.gas.n_species, len(self.T)))        # molar
+        self.s = np.zeros((self.gas.n_species, len(self.T)))        # molar
 
-        self.nasa_coeffs = np.zeros((self.gas.n_species, 15))
+        # properties at standard temperature, required by nasa polynomial fitting
+        self.cp0_over_R = np.zeros(self.gas.n_species)
+        self.dhf_over_R = np.zeros(self.gas.n_species)
+        self.s0_over_R = np.zeros(self.gas.n_species)
 
         #self.test = dict.fromkeys(self.gas.species_names, np.zeros((len(T))))
 
@@ -69,7 +72,48 @@ class ctThermoTransport:
         #wr.write_sp_list(gas.species_names,thermoFN)
         # --------------------------------------------- #
 
-    
+
+    def get_thermo_fit_type(self, species_name):
+        """
+        sp_i: species name
+        return: - type_name = [NasaPoly2 (NASA7), Nasa9PolyMultiTempRegion (NASA9), Shomate], 
+        """
+        i = self.gas.species_index(species_name)
+        type_name = type(self.gas.species(i).thermo).__name__
+        return type_name
+
+
+    def get_nasa7_coeffs(self, species_name):
+        """
+        gas: cantera gas object
+        sp_i: species name
+        return: 
+                - coeffs is the corresponding coeffcients for the analytical polynomial.
+        """
+        i = self.gas.species_index(species_name)
+        return self.gas.species(i).thermo.coeffs
+
+
+
+    def is_nasa7(self, species_name):
+        fit_type = self.get_thermo_fit_type(species_name)
+        if(fit_type=="NasaPoly2" ):
+            return True
+        else:
+            return False
+
+
+    def nasa_normalisation(self, T, cp_mole, h_mole, s_mole):
+        """
+        Divide by gas constant (and T) according to NASA JANAF definitions.
+        Assuming data structure [M,] or [M,N] shaped data, where M is the number of species and N is data size      
+        """
+        cp_over_R = cp_mole / ct.gas_constant
+        h_over_RT = h_mole[None,:] / (T * ct.gas_constant)
+        s_over_R  = s_mole / ct.gas_constant
+
+        return cp_over_R, h_over_RT[0], s_over_R
+
 
     def evaluate_properties(self):
         '''
@@ -78,9 +122,7 @@ class ctThermoTransport:
         # Initialise a free flame object
         gas = ct.Solution(self.mechanismFile)
         p0 = ct.one_atm     # - not utilised
-        width = 0.03        # - not utilised
         gas.TP = 300.0, p0  # - not utilised
-        f = ct.FreeFlame(gas, width=width)
 
         print("Evaluating thermophysical properties over species.")
 
@@ -91,27 +133,28 @@ class ctThermoTransport:
             reactants = sp_i + ':1.0'
             i = gas.species_index(sp_i)
 
-            self.nasa_coeffs[i,:] = self.gas.species(gas.species_index(sp_i)).thermo.coeffs
+            # standard properties
+            self.cp0_over_R[i] =  gas.species(i).thermo.cp(self.T_std)/ct.gas_constant # this calls molar cp <==> consistent
+            self.dhf_over_R[i] =  gas.species(i).thermo.h(self.T_std)/ct.gas_constant
+            self.s0_over_R[i]  =  gas.species(i).thermo.s(self.T_std)/ct.gas_constant
 
             for j in range(len(self.T)):
 
                 gas.TPX = self.T[j], p0, reactants
-                f = ct.FreeFlame(gas, width=width)
 
                 self.mu[i][j] = gas.viscosity
                 self.kappa[i][j] = gas.thermal_conductivity
 
-                # divide by gas constant according to NASA JANAF definitions
-                self.cp[i][j] = gas.cp_mole/(ct.gas_constant)
-                self.h[i][j]  = gas.enthalpy_mole/(ct.gas_constant*self.T[j])
-                self.s[i][j]  = gas.entropy_mole/(ct.gas_constant)
+                self.cp[i][j] = gas.cp_mole
+                self.h[i][j]  = gas.enthalpy_mole
+                self.s[i][j]  = gas.entropy_mole
 
                 # both Cv definitions are required in Sutherland formulation
                 self.cv_mass[i][j] = gas.cv_mass
                 self.cv_mole[i][j] = gas.cv_mole
-    
 
-    def evaluate_mixture_properties(self,mixture_name, X):
+
+    def evaluate_mixture_properties(self, mixture_name, X):
         '''
         Evaluate according to the temperature sampling, defined in class declaration.
         X is molar concentration in cantera style formatting
@@ -119,9 +162,7 @@ class ctThermoTransport:
         # Initialise a free flame object
         gas = ct.Solution(self.mechanismFile)
         p0 = ct.one_atm     # - not utilised
-        width = 0.03        # - not utilised
         gas.TPX = 300.0, p0, X 
-        f = ct.FreeFlame(gas, width=width)
 
         mu = np.zeros(len(self.T))
         kappa = np.zeros(len(self.T))
@@ -132,19 +173,23 @@ class ctThermoTransport:
         s = np.zeros(len(self.T))
 
         print("Evaluating thermophysical properties for mixture " + mixture_name + ": " + repr(X))
+
+        # standard property, potentially required in cp re-fitting
+        gas0 = ct.Solution(self.mechanismFile)
+        gas0.TPX = 298.15, p0, X 
+        cp0_over_R =  gas0.cp_mole/ct.gas_constant
         
         for i in range(len(self.T)):
 
             gas.TPX = self.T[i], p0, X
-            f = ct.FreeFlame(gas, width=width)
 
             mu[i] = gas.viscosity
             kappa[i] = gas.thermal_conductivity
 
             # divide by gas constant according to NASA JANAF definitions
-            cp[i] = gas.cp_mole/(ct.gas_constant)
-            h[i]  = gas.enthalpy_mole/(ct.gas_constant*self.T[i])
-            s[i]  = gas.entropy_mole/(ct.gas_constant)
+            cp[i] = gas.cp_mole
+            h[i]  = gas.enthalpy_mole
+            s[i]  = gas.entropy_mole
 
             # both Cv definitions are required in Sutherland formulation
             cv_mass[i] = gas.cv_mass
@@ -152,7 +197,7 @@ class ctThermoTransport:
 
 
         mix_tran_data = {"mu": mu, "kappa": kappa}
-        mix_thermo_data = {"cp": cp, "h": h, "s": s, "cv_mass": cv_mass, "cv_mole": cv_mole}
+        mix_thermo_data = {"cp": cp, "h": h, "s": s, "cv_mass": cv_mass, "cv_mole": cv_mole, "cp0_over_R": cp0_over_R}
         
         return mix_tran_data, mix_thermo_data
 
@@ -165,9 +210,7 @@ class ctThermoTransport:
         maxT_user = np.max(self.T)
 
         if( minT_ref > minT_user ):
-            print("\tWARNING: Given min(T) for evaluation is out of original bounds:")
-            print("\t\t" + sp_i + " : " + repr(minT_ref) + ' K (orig.) vs. ' + repr(minT_user) + ' K' )
+            print("\t" + sp_i + ": Warning, given min(T)=" + repr(minT_user) +  "K is out of original bounds. (" + repr(minT_ref) + 'K)' )
         if( maxT_ref < maxT_user ):
-            print("\tWARNING: Given max(T) for evaluation is out of original bounds:")
-            print("\t\t" + sp_i +  " : " + repr(maxT_ref) + ' K (orig.) vs. ' + repr(maxT_user) + ' K' )
+            print("\t" + sp_i + ": Warning, given max(T)=" + repr(maxT_user) +  "K is out of original bounds. (" + repr(maxT_ref) + 'K)' )
 

@@ -1,21 +1,41 @@
 
-- make warnings red 
-
-- fix variable naming
-
-- init-dirs on nyt ct_propertiesin alla
+- make test to ensure that fitting is valid
 
 - write to output files that they are originating from XX mechanism, made by this tool at this date
 
-- make test to ensure that fitting is valid
-
+- transport plot
 - check that Euken cv values are correct or if you'd get rid of cv_mass cv_mole
 
-- create a class called thermoDataFitter
-    - fit_NASA_polynomials()
+- mixture cp ct_cpropseis ei toimi nyt
 
-    - build_matrices
-    - build_constraints
+- create OF writer
+
+- make warnings red 
+
+- check the correct way to divide by number and then make it to the power
+
+- correct_coeffs() function could be tidied up by using nasa-functions.
+
+- lisää __author__ setup.py
+
+- Tcommon not required to be within the fit --> simplifies
+
+- fix variable naming
+
+- fix indentation and style
+
+- init-dirs on nyt ct_propertiesin alla
+
+- bashrc example export print out
+
+- think licensing through
+
+- lsqlin author acknowledgement to README
+
+- ADd to readme that efficiency could be enhanced by optimizing for loops to vectorized operations.
+
+- You could avoid calling Tc_i in fitting functions. 
+    - There should be no need to include Tcommon twice in the matrix equation as it is done at the moment
 
 
         try:  
@@ -27,8 +47,5 @@
         except OSError:  
             None
 
-- create a plotting class
 
-- create OF writer
 
-- add support for making fits for mixtures like air and EGR.
