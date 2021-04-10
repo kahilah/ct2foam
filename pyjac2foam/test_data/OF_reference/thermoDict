@@ -1,0 +1,105 @@
+specie1
+{
+   specie
+   {
+      molWeight 1;
+   }
+
+   thermodynamics
+   {
+      Cp 1;
+      Cv 1;
+      Hf 0;
+   }
+
+   transport
+   {
+      mu 1;
+      Pr 1;
+   }
+}
+
+specie2
+{
+   specie
+   {
+      molWeight 0.5;
+   }
+
+   thermodynamics
+   {
+      Cp 1;
+      Cv 1;
+      Hf 0;
+   }
+
+   transport
+   {
+      mu 1;
+      Pr 1;
+   }
+}
+
+specie3
+{
+   specie
+   {
+      molWeight 2;
+   }
+
+   thermodynamics
+   {
+      Cp 2;
+      Hf 0;
+   }
+
+   transport
+   {
+      As 1;
+      Ts 1;
+   }
+}
+
+specie4
+{
+   specie
+   {
+      molWeight 1;
+   }
+
+   thermodynamics
+   {
+      Cp 1;
+      Hf 0;
+   }
+
+   transport
+   {
+      muCoeffs<8> ( 1000 -0.05 0.003 0 0 0 0 0 );
+      kappaCoeffs<8>  ( 2000 -0.15 0.023 0 0 0 0 0 );      
+   }
+}
+
+// Copied from OpenFOAM 8 tutorials
+H2O
+{
+    specie
+    {
+        molWeight       18.0153;
+    }
+    equationOfState
+    {}
+    thermodynamics
+    {
+        Tlow            200;
+        Thigh           5000;
+        Tcommon         1000;
+        highCpCoeffs    ( 2.67215 0.00305629 -8.73026e-07 1.201e-10 -6.39162e-15 -29899.2 6.86282 );
+        lowCpCoeffs     ( 3.38684 0.00347498 -6.3547e-06 6.96858e-09 -2.50659e-12 -30208.1 2.59023 );
+    }
+    transport
+    {
+        As              1.67212e-06;
+        Ts              170.672;
+    }
+}

@@ -6,6 +6,22 @@ __pycache__/
 # C extensions
 *.so
 
+# OpenFOAM
+# Dependency files - anywhere
+*.dep
+# lnInclude (symlink) directories - anywhere
+lnInclude
+# Build directories - anywhere
+linux*Clang*/
+linux*Gcc*/
+linux*Icc*/
+solaris*Gcc*/
+SunOS*Gcc*/
+platforms/
+
+#package related
+Figures/
+
 # Distribution / packaging
 .Python
 build/

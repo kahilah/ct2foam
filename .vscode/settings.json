@@ -1,3 +1,15 @@
 {
-    "python.linting.enabled": true
+    "python.linting.enabled": true,
+    "files.associations": {
+        "*Dict": "OpenFOAM",
+        "*Properties": "OpenFOAM",
+        "fvSchemes": "OpenFOAM",
+        "fvSolution": "OpenFOAM",
+        "**/constant/*": "OpenFOAM",
+        "**/0/*": "OpenFOAM",
+        "**/0*/*": "OpenFOAM",
+        "**/system/*": "OpenFOAM",
+        "Test-thermoMixture.C": "cpp",
+        "ostream": "cpp"
+    }
 }

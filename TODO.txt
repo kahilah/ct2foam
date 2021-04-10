@@ -1,18 +1,8 @@
+- ctmixfoam could be cleaner
 
-- make test to ensure that fitting is valid
-
-- write to output files that they are originating from XX mechanism, made by this tool at this date
-
-- transport plot
-- check that Euken cv values are correct or if you'd get rid of cv_mass cv_mole
-
-- mixture cp ct_cpropseis ei toimi nyt
-
-- create OF writer
-
-- make warnings red 
-
-- check the correct way to divide by number and then make it to the power
+- create OF writer  
+    - remember that polynomial must be flipped
+    - write to output files that they are originating from XX mechanism, made by this tool at this date
 
 - correct_coeffs() function could be tidied up by using nasa-functions.
 
@@ -20,11 +10,11 @@
 
 - Tcommon not required to be within the fit --> simplifies
 
+- write to README that if you want plots for all, set tolerances to minimum 1e-30
+
+- maybe add plot commands whenever fit fails --> then it's easy to visualise what's the issue.
+
 - fix variable naming
-
-- fix indentation and style
-
-- init-dirs on nyt ct_propertiesin alla
 
 - bashrc example export print out
 
@@ -38,14 +28,6 @@
     - There should be no need to include Tcommon twice in the matrix equation as it is done at the moment
 
 
-        try:  
-            shutil.rmtree('fit_validation_figs/')
-        except OSError:  
-            None
-        try:  
-            os.makedirs('fit_validation_figs/')
-        except OSError:  
-            None
 
 
 
