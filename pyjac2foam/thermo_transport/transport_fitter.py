@@ -10,9 +10,12 @@ def sutherland(T, As, Ts):
     return  As*np.sqrt(T)/(1.0 + Ts/T)
 
 
-def euken(As,Ts,mu,cv_mass,cv_mole,R):
+def euken(mu, cv_mole, W, R):
     # The Euken formulation for conductivity based on Sutherland coefficients used in Openfoam
-    return mu*cv_mass*(1.32 + 1.77*R/cv_mole)
+    # Foam::scalar Foam::sutherlandTransport<Thermo>::kappa() = mu(p, T)*Cv_*(1.32 + 1.77*this->R()/Cv_);
+    Cv = cv_mole/W
+    Rspecific = R/W
+    return mu*Cv*(1.32 + 1.77*Rspecific/Cv)
 
 
 def eval_polynomial(poly_coeffs_mu, poly_coeffs_kappa, T, poly_order=3, logBasis=True):
@@ -81,7 +84,7 @@ def fit_sutherland(T, mu, p0=np.array([1.0, 1.0])):
     return As, Ts, std_err
     
 
-def error_sutherland(mu, kappa, T, As, Ts, cv_mass, cv_mole, R):
+def error_sutherland(mu, kappa, T, As, Ts, cv_mole, W, R):
     '''
     Assuming [M,] or [M,K] shaped arrays (column vector data)
     calculate species-wise L2 error for the sutherland fit
@@ -91,17 +94,17 @@ def error_sutherland(mu, kappa, T, As, Ts, cv_mass, cv_mole, R):
     # consistent behavior with 1d and 2d arrays
     mu = np.atleast_2d(mu) 
     kappa = np.atleast_2d(kappa) 
-    cv_mass = np.atleast_2d(cv_mass) 
     cv_mole = np.atleast_2d(cv_mole) 
     As = np.atleast_1d(As) 
     Ts = np.atleast_1d(Ts) 
+    W = np.atleast_1d(W) 
 
     N = len(As)
     err_mu = np.zeros(N)
     err_kappa = np.zeros(N)
     for i in range(N):
         mu_sutherland = sutherland(T, As[i], Ts[i])
-        kappa_euken = euken(As[i], Ts[i], mu_sutherland, cv_mass[i,:], cv_mole[i,:], R)
+        kappa_euken = euken(mu_sutherland, cv_mole[i,:], W[i], R)
         mu_err = np.abs(mu[i,:] - mu_sutherland)
         kappa_err = np.abs(kappa[i,:] - kappa_euken)
 

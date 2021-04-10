@@ -214,20 +214,19 @@ def correct_coeffs(coeffs, Tcommon, dhf_over_R, s0_over_R):
     return coeffs
 
 
-def fit_nasapolys_cp(T0, Tc_i, cp_over_R, cp0_over_R, dhf_over_R, s0_over_R):
+def fit_nasapolys_cp(T0, Tc_i, cp_over_R, cp0_over_R, dhf_over_R, s0_over_R, verbose=False):
     """
     take notes from main notes
     Supports 1d-arrays only [M,] sized, where M refers to number of T0 array (sample) size.
     Tc_i is the common temperature index in the T0 array
     """
-    print('\tFitting cp/R only and derive the remaining coeffcients analytically...')
+    if(verbose):
+        print('\tFitting cp/R only and derive the remaining coeffcients analytically...')
 
     Tcommon = T0[Tc_i]
     T_low = T0[0:Tc_i+1]  
     T_high = T0[Tc_i:]
     T = np.concatenate((T_low,T_high))
-    #T_low = T[T<=1000]  
-    #T_high = T[T>1000]
 
     Nl=len(T_low)
     Nh=len(T_high)
@@ -292,13 +291,14 @@ def fit_nasapolys_cp(T0, Tc_i, cp_over_R, cp0_over_R, dhf_over_R, s0_over_R):
     return coeffs_lo, coeffs_hi
 
 
-def fit_nasapolys_full(T0, Tc_i, cp_over_R, h_over_RT, s_over_R, cp0_over_R, dhf_over_R, s0_over_R):
+def fit_nasapolys_full(T0, Tc_i, cp_over_R, h_over_RT, s_over_R, cp0_over_R, dhf_over_R, s0_over_R, verbose=False):
     """
     take notes from main notes
     Supports 1d-arrays only [M,] sized, where M refers to number of T0 array (sample) size.
     Tc_i is the common temperature index in the T0 array
     """
-    print( '\tFitting cp/R, h/RT and s/R simultaneously...' )
+    if(verbose):
+        print( '\tFitting cp/R, h/RT and s/R simultaneously...' )
 
     Tcommon = T0[Tc_i]
     T_low = T0[0:Tc_i+1]  
@@ -405,11 +405,10 @@ def fit_nasapolys_full(T0, Tc_i, cp_over_R, h_over_RT, s_over_R, cp0_over_R, dhf
     # constraint rhs
     beq[2] = cp0_over_R     # not mandatory
 
+    '''       
     # - h and C0 continuity is guaranteed after solution by analytical consideration
     # - if forcing the constraints to the linear solution (below), result are typically less good
     #   and the other coefficients do the job anyways as suggested by pen and paper
-
-    '''       
     # h : C0 continuity 
     Aeq[2,0] = 1. - __T_std/Tcommon
     Aeq[2,M] = -(1. - __T_std/Tcommon)
@@ -417,7 +416,6 @@ def fit_nasapolys_full(T0, Tc_i, cp_over_R, h_over_RT, s_over_R, cp0_over_R, dhf
         cf = (1./(i+1))**(1./i)
         Aeq[2,i] = (cf*Tcommon)**i - (__T_std/Tcommon)*(cf*__T_std)**i  
         Aeq[2,i+M] = -((cf*Tcommon)**i - (__T_std/Tcommon)*(cf*__T_std)**i)  
-    
     # s : C0 continuity 
     Aeq[3,0] = np.log(Tcommon/__T_std)
     Aeq[3,M] = -np.log(Tcommon/__T_std)
@@ -443,3 +441,20 @@ def fit_nasapolys_full(T0, Tc_i, cp_over_R, h_over_RT, s_over_R, cp0_over_R, dhf
     coeffs_hi = coeffs_corrected[7:]
 
     return coeffs_lo, coeffs_hi
+
+
+def error_nasa7(T, cp, h, s, Tmid, coeffs_lo, coeffs_hi, R=8314.46261815324):
+
+    cp_fit = cp_nasa7(T, Tmid, coeffs_lo, coeffs_hi)*R
+    dcp = np.abs(cp - cp_fit)
+    err_cp = np.linalg.norm(dcp)/np.linalg.norm(cp)
+
+    h_fit = h_nasa7(T, Tmid, coeffs_lo, coeffs_hi)*R*T
+    dh = np.abs(h - h_fit)
+    err_h = np.linalg.norm(dh)/np.linalg.norm(h)
+
+    s_fit = s_nasa7(T, Tmid, coeffs_lo, coeffs_hi)*R
+    ds = np.abs(s - s_fit)
+    err_s = np.linalg.norm(ds)/np.linalg.norm(s)
+
+    return err_cp, err_h, err_s
