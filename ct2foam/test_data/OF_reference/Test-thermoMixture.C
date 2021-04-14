@@ -21,6 +21,7 @@ Description
 #include "constTransport.H"
 #include "sutherlandTransport.H"
 #include "polynomialTransport.H"
+#include "logPolynomialTransport.H"
 
 #include <iomanip>
 
@@ -62,10 +63,19 @@ int main(int argc, char *argv[])
     <
         species::thermo
         <
-            hConstThermo<perfectGas<specie>>,
+            janafThermo<perfectGas<specie>>,
             sensibleEnthalpy
         >
     > polynomialTransport;
+
+    typedef logPolynomialTransport
+    <
+        species::thermo
+        <
+            janafThermo<perfectGas<specie>>,
+            sensibleEnthalpy
+        >
+    > logPolynomialTransport;
 
 
     dictionary dict(IFstream("thermoDict")());
@@ -117,6 +127,9 @@ int main(int argc, char *argv[])
     Info<< "Cv = " << tp.Cv(1, T) << endl;
     Info<< "mu = " << tp.mu(1, T) << endl;
     Info<< "kappa = " << tp.kappa(1, T) << endl;
+    logPolynomialTransport tlp(dict.subDict("specie4"));
+    Info<< "logmu = " << tlp.mu(1, T) << endl;
+    Info<< "logkappa = " << tlp.kappa(1, T) << endl;
 
 
     Info << "\nH2O" << endl;    
@@ -132,7 +145,65 @@ int main(int argc, char *argv[])
     Info<< "kappa = " << ts2.kappa(p, T) << endl;
     Info<< "h = " << ts2.ha(p, T) << endl;
     Info<< "s = " << ts2.s(p, T) << endl;
+
+
+    Info << "\nH2" << endl;    
+    sutherlandJanafTransport ts3(dict.subDict("H2"));
+    T = 400;
+    p = 1e5; //=Pstd to have fair comparison with references.
+    Info<< "R = " << ts3.R() << endl;
+    Info<< "cp = " << ts3.cp(p, T) << endl;
+    Info<< "Cp = " << ts3.Cp(p, T) << endl;
+    Info<< "cv = " << ts3.cv(p, T) << endl;
+    Info<< "Cv = " << ts3.Cv(p, T) << endl;
+    Info<< "mu = " << ts3.mu(p, T) << endl;
+    Info<< "kappa = " << ts3.kappa(p, T) << endl;
+    Info<< "h = " << ts3.ha(p, T) << endl;
+    Info<< "s = " << ts3.s(p, T) << endl;
+
+
+    // for testing python module writing functions
+    dictionary dict_py(IFstream("thermoDict_H2")());
+    Info << "\nH2 from python" << endl;    
+    sutherlandJanafTransport ts_py(dict_py.subDict("H2"));
+    Info<< "R = " << ts_py.R() << endl;
+    Info<< "cp = " << ts_py.cp(p, T) << endl;
+    Info<< "Cp = " << ts_py.Cp(p, T) << endl;
+    Info<< "cv = " << ts_py.cv(p, T) << endl;
+    Info<< "Cv = " << ts_py.Cv(p, T) << endl;
+    Info<< "mu = " << ts_py.mu(p, T) << endl;
+    Info<< "kappa = " << ts_py.kappa(p, T) << endl;
+    Info<< "h = " << ts_py.ha(p, T) << endl;
+    Info<< "s = " << ts_py.s(p, T) << endl;
+
+    Info << "\nH2 polynomial transport from python" << endl;    
+    polynomialTransport ts_py_poly(dict_py.subDict("H2"));
+    Info<< "mu = " << ts_py_poly.mu(p, T) << endl;
+    Info<< "kappa = " << ts_py_poly.kappa(p, T) << endl;
+
+    Info << "\nH2 log-polynomial transport from python" << endl;    
+    logPolynomialTransport ts_py_logpoly(dict_py.subDict("H2"));
+    Info<< "mu = " << ts_py_logpoly.mu(p, T) << endl;
+    Info<< "kappa = " << ts_py_logpoly.kappa(p, T) << endl;
+
+
+    Info << "\nReference data against data written by the python module for H2" << endl;    
+
+    Info<< "dR = " << mag(ts_py.R()-ts3.R())/ts3.R() << endl;
+    Info<< "dmu = " << mag(ts_py.mu(p, T)-ts3.mu(p, T))/ts3.mu(p, T) << endl;
+    Info<< "dkappa = " << mag(ts_py.kappa(p, T)-ts3.kappa(p, T))/ts3.kappa(p, T)  << endl;
+    // Note, here sutherland vs poly due to lack of other reference. See NIST for actual absolute values
+    Info<< "dmu_poly = " << mag(ts_py.mu(p, T)-ts_py_poly.mu(p, T))/ts_py_poly.mu(p, T) << endl;
+    Info<< "dkappa_poly = " << mag(ts_py.kappa(p, T)-ts_py_poly.kappa(p, T))/ts_py_poly.kappa(p, T)  << endl;
+    // here log-poly against normal poly for consistensy
+    Info<< "dmu_logpoly = " << mag(ts_py_logpoly.mu(p, T)-ts_py_poly.mu(p, T))/ts_py_poly.mu(p, T) << endl;
+    Info<< "dkappa_logpoly = " << mag(ts_py_logpoly.kappa(p, T)-ts_py_poly.kappa(p, T))/ts_py_poly.kappa(p, T)  << endl;
+
+    Info<< "dcp = " << mag(ts_py.cp(p, T)-ts3.cp(p, T))/ts3.cp(p, T) << endl;
+    Info<< "dCp = " << mag(ts_py.Cp(p, T)-ts3.Cp(p, T))/ts3.Cp(p, T) << endl;
+    
     Info<< "\nEnd\n" << endl;
+
 
     return 0;
 }

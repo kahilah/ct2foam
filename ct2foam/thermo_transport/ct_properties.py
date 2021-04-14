@@ -3,7 +3,7 @@ import numpy as np
 import os
 
 class ctThermoTransport:
-    def __init__(self, mechanismFile, outputDir=None, T=np.linspace(280,3000,128), Tcommon=1000.0, verbose=True):
+    def __init__(self, mechanismFile, outputDir=None, T=np.linspace(280,3000,128), Tmid=1000.0, verbose=True):
         """
         A class providing functions to access cantera mechanism and thermo and transport data required in polynomial fitting.
         - mechanismFile: path to file
@@ -17,14 +17,15 @@ class ctThermoTransport:
 
         self.T_std = 298.15
         self.T     = np.sort(T)
-        self.Tcommon  =   Tcommon
+        self.Tmid  =   Tmid
         # insert Tcommon into the T array sustaining sorting
-        idx = self.T.searchsorted(self.Tcommon)
-        self.T = np.concatenate((self.T[:idx], [self.Tcommon], self.T[idx:]))
+        idx = self.T.searchsorted(self.Tmid)
+        self.T = np.concatenate((self.T[:idx], [self.Tmid], self.T[idx:]))
 
         self.gas        = self.check_mechanism()
         self.R          = ct.gas_constant
         self.W          = self.gas.molecular_weights
+        self.names      = self.gas.species_names
 
         # sampling matrices of thermophysical variables (data-set per row)
         self.mu = np.zeros((self.gas.n_species, len(self.T)))
@@ -115,6 +116,7 @@ class ctThermoTransport:
                 # both Cv definitions are required in Sutherland formulation
                 self.cv_mole[i][j] = gas.cv_mole
 
+        return 0
 
     def evaluate_mixture_properties(self, mixture_name, X):
         '''
@@ -127,48 +129,54 @@ class ctThermoTransport:
         gas.TPX = 300.0, p0, X 
         gas.transport_model = 'Multi'
 
-        mu = np.zeros(len(self.T))
-        kappa = np.zeros(len(self.T))
-        cp = np.zeros(len(self.T))
-        cv_mole = np.zeros(len(self.T))
-        h = np.zeros(len(self.T))
-        s = np.zeros(len(self.T))
+        # return 2d arrays to be consistent with the full set of species
+        mu = np.atleast_2d(np.zeros(len(self.T)))
+        kappa = np.atleast_2d(np.zeros(len(self.T)))
+        cp = np.atleast_2d(np.zeros(len(self.T)))
+        cv_mole = np.atleast_2d(np.zeros(len(self.T)))
+        h = np.atleast_2d(np.zeros(len(self.T)))
+        s = np.atleast_2d(np.zeros(len(self.T)))
 
         if(self.verbose):
             print("Evaluating thermophysical properties for mixture " + mixture_name + ": " + repr(X))
 
         # standard property, potentially required in cp re-fitting
         gas0 = ct.Solution(self.mechanismFile)
-        gas0.TPX = 298.15, p0, X 
-        cp0_over_R =  gas0.cp_mole/ct.gas_constant
-        dhf_over_R =  gas0.enthalpy_mole/ct.gas_constant
-        s0_over_R =  gas0.entropy_mole/ct.gas_constant
-        
+        gas0.TPX = self.T_std, p0, X 
+        cp0_over_R = np.atleast_1d(gas0.cp_mole/ct.gas_constant)
+        dhf_over_R = np.atleast_1d(gas0.enthalpy_mole/ct.gas_constant)
+        s0_over_R = np.atleast_1d(gas0.entropy_mole/ct.gas_constant)
+        W = np.atleast_1d(gas0.mean_molecular_weight)
+
         for i in range(len(self.T)):
 
             gas.TPX = self.T[i], p0, X
 
-            mu[i] = gas.viscosity
-            kappa[i] = gas.thermal_conductivity
+            mu[0][i] = gas.viscosity
+            kappa[0][i] = gas.thermal_conductivity
 
             # divide by gas constant according to NASA JANAF definitions
-            cp[i] = gas.cp_mole
-            h[i]  = gas.enthalpy_mole
-            s[i]  = gas.entropy_mole
+            cp[0][i] = gas.cp_mole
+            h[0][i]  = gas.enthalpy_mole
+            s[0][i]  = gas.entropy_mole
 
             # both Cv definitions are required in Sutherland formulation
-            cv_mole[i] = gas.cv_mole
+            cv_mole[0][i] = gas.cv_mole
 
-
-        # to work with all functions, make 2d
-        mu, kappa = np.atleast_2d(mu), np.atleast_2d(kappa)
-        cp, h, s = np.atleast_2d(cp), np.atleast_2d(h), np.atleast_2d(s)
-        cv_mole, cp0_over_R = np.atleast_2d(cv_mole), np.atleast_1d(cp0_over_R)
-        W = np.atleast_1d(gas.mean_molecular_weight)
-        mix_tran_data = {"mu": mu, "kappa": kappa, "W": W}
-        mix_thermo_data = {"cp": cp, "h": h, "s": s, "cv_mole": cv_mole, "cp0_over_R": cp0_over_R, "dhf_over_R": dhf_over_R, "s0_over_R": s0_over_R}
+        #override the class initialisation
+        self.W          = W
+        self.names      = [mixture_name]
+        self.mu = mu
+        self.kappa = kappa
+        self.cv_mole = cv_mole
+        self.cp = cp
+        self.h = h
+        self.s = s
+        self.cp0_over_R = cp0_over_R
+        self.dhf_over_R = dhf_over_R
+        self.s0_over_R = s0_over_R
         
-        return mix_tran_data, mix_thermo_data
+        return 0
 
 
     def check_temperature_limits(self, sp_i):
