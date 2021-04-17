@@ -34,8 +34,8 @@ Fitting procedure:
 Solve linear constrained l2-regularized least squares by a Matlab's lsqlin equivalent algorithm. It is actually wrapper around CVXOPT QP solver.
     min_x ||C*x  - d||^2_2 + reg * ||x||^2_2
     s.t.  A * x <= b
-            Aeq * x = beq
-            lb <= x <= ub
+        Aeq * x = beq
+        lb <= x <= ub
 
 NOTES:
 - Note that multiplying with a fraction prior to the exponent ((1./2.)**(1./3.)*T)**3 ensures higher numerical arithmetic accuracy

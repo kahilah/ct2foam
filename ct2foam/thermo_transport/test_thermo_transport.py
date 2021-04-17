@@ -1,12 +1,13 @@
 import unittest
 import numpy as np
 import os
-from shutil import copyfile
 
 from . import  ct_properties
 from . import  transport_fitter as tr_fitter
 from . import  thermo_fitter as th_fitter
 from . import  ct2foam_utils 
+from . import  foam_writer 
+
 
 """
 OF_referece/Test-thermoMixture.C is used as a source of the reference data tested here.
@@ -124,8 +125,7 @@ class TestThermoTransport(unittest.TestCase):
 
     def test_nasa9(self):
         import os
-        cwd=os.getcwd()
-        thermo = ct_properties.ctThermoTransport(os.path.join(cwd, "test_data/h2o2_mod.yaml"), verbose=False)
+        thermo = ct_properties.ctThermoTransport(os.path.join(test_dir, "../h2o2_mod.yaml"), verbose=False)
         nasa7 = thermo.is_nasa7(0)
         self.assertFalse(nasa7)
     
@@ -169,9 +169,33 @@ class TestThermoTransport(unittest.TestCase):
         self.assertTrue(np.abs(cp - cp_ref)/np.abs(cp_ref) < 0.01)
 
     def test_thermo_foam_writer(self):
+        
+        test_file = os.path.join(test_dir, "testDict")
+        foam_file_ref = os.path.join(test_dir, "refDict")
 
+        name = "C2H2"
+        W = 1.123
+        As = 1.123
+        Ts = 2.234
+        poly_mu = np.flip([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8])
+        poly_kappa = np.flip([0.9, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7])
+        logpoly_mu = np.flip([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8])
+        logpoly_kappa = np.flip([0.9, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7])
+        nasa7_Tmid = 1000.0
+        nasa7_Tlo, nasa7_Thi = 200, 5000
+        nasa7_lo = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
+        nasa7_hi = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
+        elements={"C":2, "H":2}
+        foam_writer.write_thermo_transport(test_file, name, W, As, Ts, poly_mu, poly_kappa, logpoly_mu, logpoly_kappa, nasa7_Tmid, nasa7_Tlo, nasa7_Thi, nasa7_lo, nasa7_hi, elements=elements)
+        value = os.system("diff -q " + repr(test_file) + " " + repr(foam_file_ref))
+        self.assertTrue(value==0)
+        # clean-up
+        os.remove(test_file)
+
+        # The following more elaborate test fails if ran on different architechtures (floating point differences)
         #Writes a dictionary which is used by test_data/OF_reference/Test_thermoMixture.C
-
+        """
+        from shutil import copyfile
         data = ct_properties.ctThermoTransport("h2o2.cti", verbose=False)
         data.evaluate_properties()
     
@@ -192,6 +216,9 @@ class TestThermoTransport(unittest.TestCase):
         os.remove(foam_file_tmp)
         os.remove(r_file)
         os.remove(sp_file)
+        """
+
+
 
 if __name__ == '__main__':
     unittest.main()

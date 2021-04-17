@@ -1,6 +1,5 @@
 import cantera as ct
 import numpy as np
-import os
 
 class ctThermoTransport:
     def __init__(self, mechanismFile, outputDir=None, T=np.linspace(280,3000,128), Tmid=1000.0, verbose=True):

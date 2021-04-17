@@ -1,0 +1,34 @@
+C2H2
+{
+	specie
+	{
+		nMoles 	 1;
+		molWeight 	1.123;
+	}
+
+	thermodynamics
+	{
+		Tlow		200;
+		Thigh		5000;
+		Tcommon		1000.0;
+		lowCpCoeffs	(	0.1 0.2 0.3 0.4 0.5 0.6 0.7  );
+		highCpCoeffs	(	0.1 0.2 0.3 0.4 0.5 0.6 0.7  );
+	}
+
+	transport 
+	{
+		As	1.123;
+		Ts	2.234;
+		muLogCoeffs<8>	(	0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8  );
+		muCoeffs<8>	(	0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8  );
+		kappaLogCoeffs<8>	(	0.9 1.1 1.2 1.3 1.4 1.5 1.6 1.7  );
+		kappaCoeffs<8>	(	0.9 1.1 1.2 1.3 1.4 1.5 1.6 1.7  );
+	}
+
+	elements
+	{
+		C	2;
+		H	2;
+	}
+}
+

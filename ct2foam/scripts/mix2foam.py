@@ -1,9 +1,9 @@
 import argparse
 import os
 
-from thermo_transport import  ct_properties
-from thermo_transport import  ct2foam_utils as utils
-from thermo_transport import  warning_msg
+from ct2foam.thermo_transport import  ct_properties
+from ct2foam.thermo_transport import  ct2foam_utils as utils
+from ct2foam.thermo_transport import  warning_msg
 
 
 def init_dirs(output_dir=None):
@@ -14,7 +14,7 @@ def init_dirs(output_dir=None):
     return output_dir
 
 
-if(__name__ == '__main__'):
+def main():
     parser = argparse.ArgumentParser(description='Convert/refit cantera .cti -based transport and thermodynamic data into OpenFOAM format.')
     parser.add_argument('-i','--input', type=str, help='Mechanism path.', default=None, required=True)
     parser.add_argument('-o','--output', type=str, help='Output directory path.', default=None, required=False)
@@ -32,7 +32,7 @@ if(__name__ == '__main__'):
     output_dir = init_dirs(args.output)
     warning_msg.init_mixture_log(output_dir, mech, mix_name, ct_mixture)
 
-    data = ct_properties.ctThermoTransport(mech)
+    data = ct_properties.ctThermoTransport(mech, Tmid=nasa7_Tmid)
     data.evaluate_mixture_properties(mix_name, ct_mixture)
 
 
@@ -41,7 +41,7 @@ if(__name__ == '__main__'):
     transport_fits = utils.fit_ct_transport(data, poly_order=3)
     success = utils.transport_fit_quality(data, transport_fits, output_dir, plot=args.plot)
     if(not success):
-        print("\nMixture transport fit has failed.\n")
+        print("\nMixture transport fit has failed. See Figures/ for visualisation.\n")
     else:
         print("Success.")
 
@@ -50,7 +50,7 @@ if(__name__ == '__main__'):
     thermo_fits = utils.fit_mixture_thermo(data)
     success = utils.nasa7_fit_quality(data, thermo_fits, output_dir, plot=args.plot)
     if(not success):
-        print("NASA7 polynomial fit has failed.\n")
+        print("NASA7 polynomial fit has failed. See Figures/ for visualisation.\n")
     else:
         print("Success.")
 
@@ -63,3 +63,9 @@ if(__name__ == '__main__'):
 
 
     print("\nDone")
+
+
+
+
+if(__name__ == '__main__'):
+    main()
