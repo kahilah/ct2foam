@@ -1,0 +1,2 @@
+include  ct2foam/../pyjac2foam/cmake_directives/CMakeLists.txt
+include  ct2foam/../pyjac2foam/cmake_directives/runCmake.sh

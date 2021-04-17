@@ -19,7 +19,8 @@ setuptools.setup(
     In addition, utilities to use pyJac libraries within the DLBFoam is provided.""",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    packages=["ct2foam", "ct2foam.thermo_transport", "ct2foam.scripts"],#setuptools.find_packages(),
+    packages=["ct2foam", "ct2foam.thermo_transport", "ct2foam.scripts"],
+    include_package_data=True,    
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: XXX License",
