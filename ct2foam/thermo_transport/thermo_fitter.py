@@ -19,7 +19,7 @@ Depending on the initial data, the fitting is made by either of the following me
 - Fit the specific heat only and use the analytical integration to obtain the additional coefficients for entropy and enthalpy.  
 The specific heat fit constrains the derivative to be continuous at Tcommon and the value of 
 specific heat at 298.15 K is constrained to be the specified value of the standard state (enthalpy of formation). 
-The entropy and enthalpy values at the midpoints are forced to be continuous by analytical constaining.
+The entropy and enthalpy values at the midpoints are forced to be continuous by analytical constraining.
 
 - This procedure produces high quality fits as long as the input entropy and enthalpy are thermodynamically 
 consistent with the specific heat data.  This will always be the case if the thermodynamic data have been 
@@ -56,7 +56,6 @@ def _cp_nasa7(c, T):
 def cp_nasa7(T, Tmid, c_lo, c_hi):
     """
     Full treatment of all temperature ranges in a numpy efficient manner.
-    coeffs[0] is Tcommon
     T is [M,] shaped array
     return cp(T)/R
     """
@@ -80,7 +79,8 @@ def _h_nasa7(c, T):
 
 def h_nasa7(T, Tmid, c_lo, c_hi):
     """
-    h/RT
+    Full treatment of all temperature ranges in a numpy efficient manner.
+    T is [M,] shaped array
     return h(T)/TR
     """
     T = np.atleast_1d(T)
@@ -103,6 +103,8 @@ def _s_nasa7(c, T):
 
 def s_nasa7(T, Tmid, c_lo, c_hi):
     """
+    Full treatment of all temperature ranges in a numpy efficient manner.
+    T is [M,] shaped array
     return s(T)/R
     """
     T = np.atleast_1d(T)
@@ -125,7 +127,9 @@ def _dcpdT_nasa7(c, T):
 
 def dcpdT_nasa7(T, Tmid, c_lo, c_hi):
     """
-    Derivative of cp/R w.r.t. temperature == 1/R * dcp/dT
+    Full treatment of all temperature ranges in a numpy efficient manner.
+    T is [M,] shaped array
+    return: Derivative of cp/R w.r.t. temperature == 1/R * dcp/dT
     """
     T = np.atleast_1d(T)
     dcpdT_over_R = np.zeros(len(T))
@@ -138,8 +142,10 @@ def dcpdT_nasa7(T, Tmid, c_lo, c_hi):
 
 def consistency(T, Tmid, c_lo, c_hi, cp_over_R, h_over_RT, s_over_R, abs_tol=1e-6):
     """
-    cp: [M,] sized array where M is the temperature sampling ratio.
-    coeffs: coeffs[0] is Tcommon, rest are NASA 7 coefficients (2*7) in chemkin order (first high then low)
+    Check if NASA7 coefficients provide consistent evaluation against the reference data in terms of L2 error.
+    cp_over_R, h_over_RT and s_over_R: [M,] sized array where M is the temperature sampling ratio.
+    c_lo/c_hi: NASA 7 coefficients (low / high)
+    return: Boolean
     """
     dcp = np.abs(cp_over_R - cp_nasa7(T, Tmid, c_lo, c_hi))
     err_cp = np.linalg.norm(dcp)
@@ -193,7 +199,10 @@ def continuity(Tmid, c_lo, c_hi, cp_tol=1e-6, cpdT_tol=0.01, h_tol=1e-6, s_tol=1
 def correct_coeffs(coeffs, Tcommon, dhf_over_R, s0_over_R):
     """
     Solving additional constant over means of conservation of enthalpy and entropy + ensuring C0 continuity at T=Tcommon 
-    coeffs = 14 size nasa coeffs without Tcommon in 0
+    coeffs = 14 size nasa coeffs without Tcommon in 0.
+    coeffs: array [M=14,] of NASA7 coefficients for low/high temperature range.
+    dhf_over_R: enthalpy of formation at standard conditions.
+    s0_over_R: entropy at standard conditions.
     """
     # Define coeff[5] in terms of enthalpy of formation at standard conditions
     coeffs[5] = dhf_over_R - ( coeffs[0]*__T_std + coeffs[1]*((1./2.)**(1./2.)*__T_std)**2 \
@@ -216,10 +225,20 @@ def correct_coeffs(coeffs, Tcommon, dhf_over_R, s0_over_R):
 
 def fit_nasapolys_cp(T0, Tc_i, cp_over_R, cp0_over_R, dhf_over_R, s0_over_R, verbose=False):
     """
-    take notes from main notes
-    Supports 1d-arrays only [M,] sized, where M refers to number of T0 array (sample) size.
-    Tc_i is the common temperature index in the T0 array
+    See the notes at the top of this file.
+    Fit the specific heat only and use the analytical integration to obtain the additional coefficients for entropy and enthalpy.  
+    The specific heat fit constrains the derivative to be continuous at Tcommon and the value of 
+    specific heat at 298.15 K is constrained to be the specified value of the standard state (enthalpy of formation). 
+    The entropy and enthalpy values at the midpoints are forced to be continuous by analytical consrtaining.    
+
+    T0: temperature sampling. Supports 1d-arrays only [M,] sized, where M refers to number of T0 array (sample) size.
+    Tc_i is the common temperature index dividing the temperature data into low/high regimes in the T0 array
+    cp0_over_R: cp/R data at standard conditions.
+    dhf_over_R: enthalpy of formation divided by RT at standard conditions.
+    s0_over_R: entropy at standard conditions (s/R).
+    return: arrays for low- and high-region NASA7 coefficients.
     """
+
     if(verbose):
         print('\tFitting cp/R only and derive the remaining coeffcients analytically...')
 
@@ -293,10 +312,18 @@ def fit_nasapolys_cp(T0, Tc_i, cp_over_R, cp0_over_R, dhf_over_R, s0_over_R, ver
 
 def fit_nasapolys_full(T0, Tc_i, cp_over_R, h_over_RT, s_over_R, cp0_over_R, dhf_over_R, s0_over_R, verbose=False):
     """
-    take notes from main notes
-    Supports 1d-arrays only [M,] sized, where M refers to number of T0 array (sample) size.
-    Tc_i is the common temperature index in the T0 array
+    See the notes at the top of this file.
+    Original data from low-quality fit or from experiments:
+    - Create a simultaneous least squares fit considering the whole system with prescribed constraints.
+
+    T0: temperature sampling. Supports 1d-arrays only [M,] sized, where M refers to number of T0 array (sample) size.
+    Tc_i is the common temperature index dividing the temperature data into low/high regimes in the T0 array
+    cp0_over_R: cp/R data at standard conditions.
+    dhf_over_R: enthalpy of formation divided by RT at standard conditions.
+    s0_over_R: entropy at standard conditions (s/R).
+    return: arrays for low- and high-region NASA7 coefficients.
     """
+
     if(verbose):
         print( '\tFitting cp/R, h/RT and s/R simultaneously...' )
 
@@ -444,7 +471,9 @@ def fit_nasapolys_full(T0, Tc_i, cp_over_R, h_over_RT, s_over_R, cp0_over_R, dhf
 
 
 def error_nasa7(T, cp, h, s, Tmid, coeffs_lo, coeffs_hi, R=8314.46261815324):
-
+    """
+    return error of given NASA7 coefficients w.r.t. the reference data. (L2 norm)
+    """
     cp_fit = cp_nasa7(T, Tmid, coeffs_lo, coeffs_hi)*R
     dcp = np.abs(cp - cp_fit)
     err_cp = np.linalg.norm(dcp)/np.linalg.norm(cp)

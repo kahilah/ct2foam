@@ -4,11 +4,12 @@ import numpy as np
 class ctThermoTransport:
     def __init__(self, mechanismFile, outputDir=None, T=np.linspace(280,3000,128), Tmid=1000.0, verbose=True):
         """
-        A class providing functions to access cantera mechanism and thermo and transport data required in polynomial fitting.
+        A class providing functions to access cantera mechanism and thermo + transport data, required in polynomial fitting.
         - mechanismFile: path to file
         - outputDir: Where you want the mechanism file output to be placed.
         - T: sampling ratio of temperature for evaluating thermophysical properties for fitting.
-        - Tcommon: utilised by thermo_fitter w.r.t NASA polynomial fitting process.
+        - Tmid: utilised by thermo_fitter w.r.t NASA polynomial fitting process.
+        - verbose: extra printouts whenever available.
         """
         self.mechanismFile =  mechanismFile
         self.outputDir =  outputDir
@@ -41,14 +42,14 @@ class ctThermoTransport:
 
 
     def check_mechanism(self):
-        "Should catch any error related to mechanism."
+        "Should catch any standard error related to mechanism."
         gas = ct.Solution(self.mechanismFile)
         return gas
 
 
     def get_thermo_fit_type(self, species_name):
         """
-        sp_i: species name
+        species_name: species name
         return: - type_name = [NasaPoly2 (NASA7), Nasa9PolyMultiTempRegion (NASA9), Shomate], 
         """
         i = self.gas.species_index(species_name)
@@ -58,10 +59,9 @@ class ctThermoTransport:
 
     def get_nasa7_coeffs(self, species_name):
         """
-        gas: cantera gas object
-        sp_i: species name
-        return: 
-                - coeffs is the corresponding coeffcients for the analytical polynomial.
+        species_name: species_name
+        return: the corresponding coeffcients for the analytical polynomial.
+        Note, can return other than nasa-type coefficient, so user should catch/prevent that prior to this call.
         """
         i = self.gas.species_index(species_name)
         return self.gas.species(i).thermo.coeffs
@@ -112,7 +112,6 @@ class ctThermoTransport:
                 self.h[i][j]  = gas.enthalpy_mole
                 self.s[i][j]  = gas.entropy_mole
 
-                # both Cv definitions are required in Sutherland formulation
                 self.cv_mole[i][j] = gas.cv_mole
 
         return 0
@@ -121,6 +120,7 @@ class ctThermoTransport:
         '''
         Evaluate according to the temperature sampling, defined in class declaration.
         X is molar concentration in cantera style formatting
+        - overwrites class level array-type declarations with smalled dimension data types.
         '''
         # Initialise a free flame object
         gas = ct.Solution(self.mechanismFile)
@@ -159,7 +159,6 @@ class ctThermoTransport:
             h[0][i]  = gas.enthalpy_mole
             s[0][i]  = gas.entropy_mole
 
-            # both Cv definitions are required in Sutherland formulation
             cv_mole[0][i] = gas.cv_mole
 
         #override the class initialisation
@@ -178,16 +177,18 @@ class ctThermoTransport:
         return 0
 
 
-    def check_temperature_limits(self, sp_i):
-
-        minT_ref = self.gas.species(self.gas.species_index(sp_i)).thermo.min_temp
+    def check_temperature_limits(self, species_name):
+        """
+        Print a warning if user given temperature limits are out of the original data limits.
+        """
+        minT_ref = self.gas.species(self.gas.species_index(species_name)).thermo.min_temp
         minT_user = np.min(self.T)
-        maxT_ref = self.gas.species(self.gas.species_index(sp_i)).thermo.max_temp
+        maxT_ref = self.gas.species(self.gas.species_index(species_name)).thermo.max_temp
         maxT_user = np.max(self.T)
 
         if(self.verbose):
             if( minT_ref > minT_user ):
-                print("\t" + sp_i + ": Warning, given min(T)=" + repr(minT_user) +  "K is out of original bounds. (" + repr(minT_ref) + 'K)' )
+                print("\t" + species_name + ": Warning, given min(T)=" + repr(minT_user) +  "K is out of original bounds. (" + repr(minT_ref) + 'K)' )
             if( maxT_ref < maxT_user ):
-                print("\t" + sp_i + ": Warning, given max(T)=" + repr(maxT_user) +  "K is out of original bounds. (" + repr(maxT_ref) + 'K)' )
+                print("\t" + species_name + ": Warning, given max(T)=" + repr(maxT_user) +  "K is out of original bounds. (" + repr(maxT_ref) + 'K)' )
 

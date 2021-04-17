@@ -2,7 +2,9 @@ import numpy as np
 
 
 def write_species_list(file_name, species_names):
-
+    """
+    Writes a species.foam file with an OpenFOAM formatted list of species.
+    """
     with open(file_name, 'a') as output:
         output.write('species\n(\n')
         for sp_i in species_names:
@@ -13,7 +15,9 @@ def write_species_list(file_name, species_names):
 
 
 def write_reactions(file_name):
-    
+    """
+    Writes an empty reactions.foam file with an OpenFOAM formatted list of 0 reactions.
+    """
     with open(file_name, 'a') as output:
         output.write('reactions\n{\n')
         output.write('}\n\n')        
@@ -21,8 +25,14 @@ def write_reactions(file_name):
 
 def write_thermo_transport(file_name, name, MW, As, Ts, poly_mu, poly_kappa, logpoly_mu, logpoly_kappa, nasa7_Tmid, nasa7_Tlo, nasa7_Thi, nasa7_lo, nasa7_hi, elements=None):
     """
-    Writes thermophysicalProperties file according to arguments.
-    elements is a dictionary with the following syntax:  elements = {"C": 1, "H":1}
+    Writes thermophysicalProperties file required dictionary entries according to given data.
+    file_name: output file name.
+    name: species name / mixture name
+    MW: molecular weight
+    As, Ts: Sutherland entries
+    poly*: transport polynomial entries
+    nasa7*: NASA7 polynomial coefficient entry data
+    elements: a dictionary with the following syntax:  elements = {"C": 1, "H":1}
     """
     # Numpy-based polynomial fit has a reversed order to OpenFoam dictionary definition
     poly_mu_rev = np.copy(poly_mu)

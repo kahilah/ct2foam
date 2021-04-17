@@ -12,8 +12,10 @@ def sutherland(T, As, Ts):
 
 
 def euken(mu, cv_mole, W, R):
-    # The Euken formulation for conductivity based on Sutherland coefficients used in Openfoam
-    # Foam::scalar Foam::sutherlandTransport<Thermo>::kappa() = mu(p, T)*Cv_*(1.32 + 1.77*this->R()/Cv_);
+    """
+    The Euken formulation for conductivity based on Sutherland coefficients used in Openfoam
+    Foam::scalar Foam::sutherlandTransport<Thermo>::kappa() = mu(p, T)*Cv_*(1.32 + 1.77*this->R()/Cv_);
+    """
     Cv = cv_mole/W
     Rspecific = R/W
     return mu*Cv*(1.32 + 1.77*Rspecific/Cv)
@@ -21,7 +23,8 @@ def euken(mu, cv_mole, W, R):
 
 def eval_polynomial(poly_coeffs_mu, poly_coeffs_kappa, T):
     '''
-    poly_order=3 yields Chemkin type fit for polynomial for viscosity and conductivity
+    Evaluate polynomial transport fit.
+    return: viscosity and conductivity values at given temperature.
     '''
     f_mu = np.poly1d(poly_coeffs_mu)
     f_kappa = np.poly1d(poly_coeffs_kappa)
@@ -30,7 +33,8 @@ def eval_polynomial(poly_coeffs_mu, poly_coeffs_kappa, T):
 
 def eval_log_polynomial(poly_coeffs_mu, poly_coeffs_kappa, T):
     '''
-    poly_order=3 yields Chemkin type fit for polynomial for viscosity and conductivity
+    Evaluate polynomial transport fit.
+    return: viscosity and conductivity values at given temperature.
     '''
     f_mu = np.poly1d(poly_coeffs_mu)
     f_kappa = np.poly1d(poly_coeffs_kappa)
@@ -41,7 +45,8 @@ def eval_log_polynomial(poly_coeffs_mu, poly_coeffs_kappa, T):
 
 def fit_polynomial(T, mu, kappa, poly_order=3):
     '''
-    poly_order=3 yields Chemkin type fit for polynomial fit for viscosity and conductivity
+    Make a least-squares polynomial transport fit.
+    return: fit coefficients according to numpy standards.
     mu is [N,M]
     kappa is [N,M]
     '''
@@ -57,7 +62,8 @@ def fit_polynomial(T, mu, kappa, poly_order=3):
 
 def fit_log_polynomial(T, mu, kappa, poly_order=3):
     '''
-    poly_order=3 yields Chemkin type fit for log-polynomial fit for viscosity and conductivity
+    Make a least-squares polynomial transport fit.
+    return: fit coefficients according to numpy standards.
     mu is [N,M]
     kappa is [N,M]
     '''
@@ -78,8 +84,10 @@ def fit_log_polynomial(T, mu, kappa, poly_order=3):
 
 def fit_sutherland(T, mu, p0=np.array([1.0, 1.0])):
     """
-        mu is [M,] array where M is the temperature sampling size
-        p0 #initial guess
+    Make a least-squares polynomial transport fit.
+    return: fit coefficients according to curve_fit standards.
+    mu is [N,M]
+    kappa is [N,M]
     """
     popt, pcov = curve_fit(sutherland, T, mu, p0=p0)
     As = popt[0]
@@ -129,7 +137,7 @@ def error_log_polynomial(mu, kappa, poly_coeffs_mu, poly_coeffs_kappa, T):
     '''
     calculate species-wise L2 error for the sutherland fit
     T is array of sample rate
-    As and Ts are sutherland coefficients with size N corresponding number of species
+    poly* are coefficients with size N corresponding number of species
     '''
     mu_poly, kappa_poly = eval_log_polynomial(poly_coeffs_mu, poly_coeffs_kappa, T)
     
