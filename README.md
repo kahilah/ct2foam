@@ -5,24 +5,34 @@ Furthermore, this package supports the users of [DLBFoam](https://github.com/blt
 
 ## Installation
 Package relies on Cantera installation, for which the recommended installation principle is via [conda](https://cantera.org/install/index.html). Hence, the recommended and easiest installation path is via conda as well. In particular, we recommend using the Miniconda package manager for this. 
-- To install in conda environment, do as follows:
+
+For users interested to use the pyjac2foam module, python version must be set <code>python<=3.6</code>. Otherwise, the latest releases can be utilised (tested up to python 3.8.8).
+
+- To install in conda environment:
 ```
-conda create --name ct2foam_env --channel cantera cantera numpy scipy matplotlib
+conda create --name ct2foam_env --channel cantera cantera python=3.6 numpy scipy matplotlib
 cd my/installation/path
 git clone git@github.com:kahilah/ct2foam.git
 cd ct2foam
 conda activate ct2foam_env
 pip install .
 ```
-- If you install Cantera in an other way (e.g. from sources), run pip install as above.
+
+- To install on ubuntu without conda:
+    - follow the [instructions for cantera](https://cantera.org/install/ubuntu-install.html)
+    - use <code>pip install .</code>, as above.
+
+- To install in other environments:
+    - See https://cantera.org/install/index.html and ensure that dependencies mentioned in <code>setup.py</code> are appreciated.
 
 - Dependencies are installed automatically:
+    - cantera, numpy, scipy, cvxopt, matplotlib
     - Distribution is tested with Cantera 2.5.1
-    - <code>setup.py</code> lists the dependencies w.r.t. tested versions...downgrading possibility is highly likely if required (modify if required)
+    - <code>setup.py</code> lists the dependencies.
 
 ## Run tests:
 ```
-cd ct2foam
+cd ct2foam/ct2foam/
 python -m unittest discover
 ```
 - Note that <code>ct2foam/test_data/OF_reference</code> includes C++ code requiring OpenFoam based compilation. However, this is mainly included here for development / testing purposes and standard user is not required to compile anything here.
@@ -48,7 +58,7 @@ python -m unittest discover
     - consistent <code>thermophysicalProperties</code>, <code>chemistsryProperties</code> and <code>controlDict</code> entries for an OpenFOAM case setup.
 
 
-- Note that [pyJac](https://github.com/SLACKHA/pyJac) is not set as a requirement for this python package. To install:
+- Note that [pyJac](https://github.com/SLACKHA/pyJac) is not set as a requirement for this python package. To install, ensure that you have <code>python=3.6</code> installed. Then,
     - <code>conda install -c slackha pyjac</code> (or)
     - <code>pip install pyjac</code>
 

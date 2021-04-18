@@ -28,10 +28,10 @@ setuptools.setup(
     ],
     python_requires='>=3.6',
     install_requires=[
-        'cvxopt>=1.2.5',
+        'cvxopt>=1.2.0',
         'numpy>=1.19.2',
-        'scipy>=1.6.2',
-        'matplotlib>=3.3.4'
+        'scipy>=1.5.2',
+        'matplotlib>=3.3'
     ],
     # files treated as global executables
     scripts=["pyjac2foam/pyjac2foam.sh"],
