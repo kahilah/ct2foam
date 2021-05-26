@@ -1,7 +1,7 @@
 # ct2foam -- Convert Cantera based thermophysical data To OpenFoam format 
 ct2foam enables user to generate OpenFoam dictionary entries for NASA-polynomials, Sutherland and other transport models required in <code>thermophysicalProperties</code> file. This python package utilises [Cantera](https://cantera.org/) to generate such entries for all species in a given chemical mechanism or for gaseous mixtures defined by the user. With the general functions provided in this package, it is also possible to create NASA-polynomial, Sutherland and other polynomial type fits for thermophysical data based on experiments.
 
-Furthermore, this package supports the users of [DLBFoam](https://github.com/blttkgl/DLBFoam) and [pyJac](https://github.com/SLACKHA/pyJac) by introducing an automated pyjac2foam script which builds a compilation environment for pyjac routines as well as utilises ct2foam to generate consistent thermodynamics dictionaries with pyJac. See pyjac2foam module instructions below for further information.
+Furthermore, this package supports the users of [DLBFoam](https://github.com/Aalto-CFD/DLBFoam) and [pyJac](https://github.com/SLACKHA/pyJac) by introducing an automated pyjac2foam script which builds a compilation environment for pyjac routines as well as utilises ct2foam to generate consistent thermodynamics dictionaries with pyJac. See pyjac2foam module instructions below for further information.
 
 ## Installation
 Package relies on Cantera installation, for which the recommended installation principle is via [conda](https://cantera.org/install/index.html). Hence, the recommended and easiest installation path is via conda as well. In particular, we recommend using the Miniconda package manager for this. 
