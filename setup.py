@@ -3,7 +3,7 @@ import setuptools
 __title__ = 'ct2foam'
 __version__ = '1.0.0'
 __author__ = 'Heikki Kahila'
-__license__ = 'XXX'
+__license__ = 'GPLv3'
 __copyright__ = 'Copyright 2021 by Heikki Kahila'
 
 
@@ -14,7 +14,7 @@ setuptools.setup(
     name="ct2foam",
     version="0.0.1",
     author="Heikki Kahila",
-    author_email="heikki.kahila@wartsila.com",
+    author_email="heikki.kahila@gmail.com",
     description="""A package including utilities for generating OpenFoam dictionaries for thermodynamic and transport entries. 
     In addition, utilities to use pyJac libraries within the DLBFoam is provided.""",
     long_description=long_description,
@@ -23,7 +23,7 @@ setuptools.setup(
     include_package_data=True,    
     classifiers=[
         "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: XXX License",
+        "License :: OSI Approved :: GPL License",
         "Operating System :: OS Independent",
     ],
     python_requires='>=3.6',
