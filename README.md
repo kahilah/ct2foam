@@ -52,7 +52,7 @@ python -m unittest discover
 - Note that if you want plots for all species, you need to provide strict tolerance values for <code>transport_fit_quality</code> and <code>nasa7_fit_quality</code>
 
 ## pyjac2foam
-- <code>pyjac2foam</code> module provides a consistent input of thermochemical data for users utilising [DLBFoam](https://github.com/blttkgl/DLBFoam) and [pyJac](https://github.com/SLACKHA/pyJac) in OpenFoam environment. In particular, <code>pyjac2foam.sh</code> executable generates:
+- <code>pyjac2foam</code> module provides a consistent input of thermochemical data for users utilising [DLBFoam](https://github.com/Aalto-CFD/DLBFoam) and [pyJac](https://github.com/SLACKHA/pyJac) in OpenFoam environment. In particular, <code>pyjac2foam.sh</code> executable generates:
     - shared libray *.so, compiled with cmake.
     - consistent species ordering between OpenFOAM and pyjac inputs.
     - consistent <code>thermophysicalProperties</code>, <code>chemistsryProperties</code> and <code>controlDict</code> entries for an OpenFOAM case setup.
