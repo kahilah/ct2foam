@@ -4,9 +4,9 @@ import numpy as np
 import cantera as ct
 import matplotlib.pyplot as plt
 
-from ct2foam.thermo_transport import  warning_msg
-from ct2foam.thermo_transport import  transport_fitter as tr_fitter
-from ct2foam.thermo_transport import  thermo_fitter as th_fitter
+from ct2foam.thermo_transport import warning_msg
+from ct2foam.thermo_transport import transport_fitter as tr_fitter
+from ct2foam.thermo_transport import thermo_fitter as th_fitter
 from ct2foam.thermo_transport import foam_writer as writer
 
 

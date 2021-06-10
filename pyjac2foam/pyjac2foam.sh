@@ -1,4 +1,7 @@
 #!/bin/bash
+set -e # Any subsequent(*) commands which fail will cause the shell script to exit immediately
+
+
 
 # Set some default values:
 mechanism=unset
@@ -46,6 +49,19 @@ check_cmake()
 }
 
 
+init_build_dir()
+{
+  # Copy original pyjac output for further modification and building
+  mkdir -p  $lib_path
+  rm -rf $lib_path/*
+  cp -r $pyjac_output "$lib_path/src"
+
+  # copy CMake directives to pyjac output
+  cp $cmake_dir/* $lib_path/
+
+}
+
+
 # DLBFoam requires function calls for number of species
 modify_pyjac_src()
 {
@@ -60,14 +76,6 @@ modify_pyjac_src()
 
 compile_pyjac_lib()
 {
-  # copy CMake directives to pyjac output
-  mkdir -p  $lib_path
-  rm -rf $lib_path/*
-  cp -r $pyjac_output "$lib_path/src"
-
-  modify_pyjac_src
-
-  cp $cmake_dir/* $lib_path/
   pushd $lib_path > /dev/null
     ./runCmake.sh
   popd > /dev/null
@@ -157,24 +165,22 @@ fi
 arg_check $mechanism
 arg_check $pyjac_output
 
-
-
-
-
-
 if [ ! -d "$pyjac_output" ]; then
    echo "ERROR: $pyjac_output path not found."
    exit 0
 fi
 
+
+
+
+# -- Execute functionalities -- #
+
+init_build_dir
+modify_pyjac_src
 if [ $compile == 1 ]; then
     check_cmake
     compile_pyjac_lib
 fi
-
-
-
-
 
 ct2foam -i $mechanism -o $foam_dir -T 1000.0 -p
 
