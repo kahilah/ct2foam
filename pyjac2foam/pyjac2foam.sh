@@ -106,6 +106,11 @@ rewrite_species()
   rm -f tmp*
 }
 
+write_reactions_note()
+{
+  sed -i '2 i\// - The reaction kinetics is read from pyJac source files.' "$foam_dir/reactions.foam"
+}
+
 howto_include()
 {
   inc_f="$foam_dir/include_example.txt"
@@ -185,6 +190,7 @@ fi
 ct2foam -i $mechanism -o $foam_dir -T 1000.0 -p
 
 rewrite_species
+write_reactions_note
 
 printf '%s\nExample how to include files in OpenFOAM:\n'
 howto_include

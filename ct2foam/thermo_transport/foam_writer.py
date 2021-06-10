@@ -19,6 +19,7 @@ def write_reactions(file_name):
     Writes an empty reactions.foam file with an OpenFOAM formatted list of 0 reactions.
     """
     with open(file_name, 'a') as output:
+        output.write('// - This dictionary intentionally left blank.\n')
         output.write('reactions\n{\n')
         output.write('}\n\n')        
 
