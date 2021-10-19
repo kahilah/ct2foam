@@ -32,7 +32,7 @@ pip install .
 
 ## Run tests:
 ```
-cd ct2foam/ct2foam/
+cd ct2foam
 python -m unittest discover
 ```
 - Note that <code>ct2foam/test_data/OF_reference</code> includes C++ code requiring OpenFoam based compilation. However, this is mainly included here for development / testing purposes and standard user is not required to compile anything here.

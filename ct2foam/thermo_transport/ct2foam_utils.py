@@ -1,5 +1,5 @@
 import sys
-import os
+from pathlib import Path
 import numpy as np
 import cantera as ct
 import matplotlib.pyplot as plt
@@ -17,8 +17,8 @@ def nasa_normalisation(T, cp_mole, h_mole, s_mole, R=ct.gas_constant):
     Assuming data structure [M,] or [M,N] shaped data, where M is the number of species and N is data size      
     """
     cp_over_R = cp_mole / R
-    h_over_RT = h_mole[None,:] / (T * R)
-    s_over_R  = s_mole / R
+    h_over_RT = h_mole[None, :] / (T * R)
+    s_over_R = s_mole / R
 
     return cp_over_R, h_over_RT[0], s_over_R
 
@@ -33,15 +33,15 @@ def fit_ct_transport(data, poly_order=3):
     As = np.zeros(N)
     Ts = np.zeros(N)
     std = np.zeros((N, 2))
-    poly_mu = np.zeros((N, poly_order+1))
-    poly_kappa = np.zeros((N, poly_order+1))
-    logpoly_mu = np.zeros((N, poly_order+1))
-    logpoly_kappa = np.zeros((N, poly_order+1))
+    poly_mu = np.zeros((N, poly_order + 1))
+    poly_kappa = np.zeros((N, poly_order + 1))
+    logpoly_mu = np.zeros((N, poly_order + 1))
+    logpoly_kappa = np.zeros((N, poly_order + 1))
 
     for i in range(N):
-        As[i], Ts[i], std[i] = tr_fitter.fit_sutherland(data.T, data.mu[i,:])
-        poly_mu[i], poly_kappa[i] = tr_fitter.fit_polynomial(data.T, data.mu[i,:], data.kappa[i,:], poly_order)
-        logpoly_mu[i], logpoly_kappa[i] = tr_fitter.fit_log_polynomial(data.T, data.mu[i,:], data.kappa[i,:], poly_order)
+        As[i], Ts[i], std[i] = tr_fitter.fit_sutherland(data.T, data.mu[i, :])
+        poly_mu[i], poly_kappa[i] = tr_fitter.fit_polynomial(data.T, data.mu[i, :], data.kappa[i, :], poly_order)
+        logpoly_mu[i], logpoly_kappa[i] = tr_fitter.fit_log_polynomial(data.T, data.mu[i, :], data.kappa[i, :], poly_order)
 
     return As, Ts, std, poly_mu, poly_kappa, logpoly_mu, logpoly_kappa
 
@@ -66,8 +66,8 @@ def transport_fit_quality(data, transport_fits, output_dir, plot=True, rel_tol_s
         err_mu_logpoly, err_kappa_logpoly = tr_fitter.error_log_polynomial(mu[i,:], kappa[i,:], logpoly_mu[i,:], logpoly_kappa[i,:], T)
 
         sutherland_ok = (err_mu_sutherland < rel_tol_sutherland) and (err_kappa_sutherland < rel_tol_Euken) 
-        polynomial_ok =  (err_mu_poly < rel_tol_poly) and (err_kappa_poly < rel_tol_poly)
-        logpolynomial_ok =  (err_mu_logpoly < rel_tol_poly) and (err_kappa_logpoly < rel_tol_poly)
+        polynomial_ok = (err_mu_poly < rel_tol_poly) and (err_kappa_poly < rel_tol_poly)
+        logpolynomial_ok = (err_mu_logpoly < rel_tol_poly) and (err_kappa_logpoly < rel_tol_poly)
 
         if(not sutherland_ok):
             success = False
@@ -81,9 +81,9 @@ def transport_fit_quality(data, transport_fits, output_dir, plot=True, rel_tol_s
             success = False
             warning_msg.warning_polynomial(output_dir, names[i], err_mu_sutherland, err_kappa_sutherland, True)
 
-        if( (not (sutherland_ok and polynomial_ok and logpolynomial_ok)) and plot):
-            fig_dir = os.path.join(output_dir, "Figures")
-            os.makedirs(fig_dir, exist_ok=True)
+        if((not (sutherland_ok and polynomial_ok and logpolynomial_ok)) and plot):
+            fig_dir = Path(output_dir, "Figures")
+            fig_dir.mkdir(exist_ok=True)
             plot_transport_comparison(names[i], T, mu[i,:], kappa[i,:], poly_mu[i,:], poly_kappa[i,:], As[i], Ts[i], cv_mole[i], W[i], fig_dir)
 
     return success
@@ -95,7 +95,7 @@ def plot_transport_comparison(name, T, mu, kappa, poly_coeffs_mu, poly_coeffs_ka
     kappa_euken = tr_fitter.euken(mu_sutherland, cv_mole, W, ct.gas_constant)
     mu_poly, kappa_poly = tr_fitter.eval_polynomial(poly_coeffs_mu, poly_coeffs_kappa, T)
 
-    fig=plt.figure(num=2,figsize=(7.5,10))
+    fig = plt.figure(num=2, figsize=(7.5, 10))
     ax1 = plt.subplot(211)
     plt.plot(T, mu, '-', color='r', label='Orig.')
     plt.plot(T, mu_sutherland, '--', color='b', label='Sutherland')
@@ -112,7 +112,7 @@ def plot_transport_comparison(name, T, mu, kappa, poly_coeffs_mu, poly_coeffs_ka
     ax2.set_xlabel('$T$[K]')
     plt.legend(loc=4)
 
-    file = os.path.join(output_dir, (name+'_transport.png'))
+    file = Path(output_dir, name + '_transport.png')
     fig.savefig(file, bbox_inches='tight')
     fig.clf()
 
@@ -150,12 +150,12 @@ def ct_thermo_continuity(thermo, sp_i):
 
 
 def plot_nasa7_comparison(name, T, cp_over_R, h_over_RT, s_over_R, Tmid, coeffs_lo, coeffs_hi, output_dir):
-    
+
     cp_fit = th_fitter.cp_nasa7(T, Tmid, coeffs_lo, coeffs_hi)
     h_fit = th_fitter.h_nasa7(T, Tmid, coeffs_lo, coeffs_hi)
     s_fit = th_fitter.s_nasa7(T, Tmid, coeffs_lo, coeffs_hi)
 
-    fig=plt.figure(num=2,figsize=(7.5,10))
+    fig = plt.figure(num=2,figsize=(7.5, 10))
     ax1 = plt.subplot(311)
     plt.plot(T, cp_over_R, '-', color='r', label='Orig.')
     plt.plot(T, cp_fit, '--', color='b', label='Fit')
@@ -175,7 +175,7 @@ def plot_nasa7_comparison(name, T, cp_over_R, h_over_RT, s_over_R, Tmid, coeffs_
     ax3.set_ylabel('s/R')
     ax3.set_xlabel('$T$[K]')
 
-    file = os.path.join(output_dir, (name+'_transport.png'))
+    file = Path(output_dir, name + '_transport.png')
     fig.savefig(file, bbox_inches='tight')
     fig.clf()
 
@@ -193,28 +193,28 @@ def refit_ct_thermo(thermo, Tmid, output_dir):
     """
     nasa_coeffs_lo = np.zeros((thermo.gas.n_species, 7))
     nasa_coeffs_hi = np.zeros((thermo.gas.n_species, 7))
-    Tci = np.where(thermo.T==Tmid)[0][0]
+    Tci = np.where(thermo.T == Tmid)[0][0]
 
     for sp_i in thermo.gas.species_names:
-        
+
         i = thermo.gas.species_index(sp_i)
         cp_over_R, h_over_RT, s_over_R = nasa_normalisation(thermo.T, thermo.cp, thermo.h, thermo.s)
         if(thermo.is_nasa7(sp_i)):
 
             ct_thermo_consistency(thermo, sp_i, output_dir)
             continuos = ct_thermo_continuity(thermo, sp_i)
-            equal_Tmid = (abs(thermo.get_nasa7_coeffs(sp_i)[0] - Tmid)/Tmid < 1e-12)
+            equal_Tmid = (abs(thermo.get_nasa7_coeffs(sp_i)[0] - Tmid) / Tmid < 1e-12)
 
             if(continuos and equal_Tmid):
                 coeffs = thermo.get_nasa7_coeffs(sp_i)
                 coeffs_lo, coeffs_hi = coeffs[8:15], coeffs[1:8]
             elif(continuos):
-                coeffs_lo, coeffs_hi = th_fitter.fit_nasapolys_cp(thermo.T, Tci, cp_over_R[i,:], thermo.cp0_over_R[i], thermo.dhf_over_R[i], thermo.s0_over_R[i])
+                coeffs_lo, coeffs_hi = th_fitter.fit_nasapolys_cp(thermo.T, Tci, cp_over_R[i, :], thermo.cp0_over_R[i], thermo.dhf_over_R[i], thermo.s0_over_R[i])
             else:
-                coeffs_lo, coeffs_hi = th_fitter.fit_nasapolys_full(thermo.T, Tci, cp_over_R[i,:], h_over_RT[i,:], s_over_R[i,:], thermo.cp0_over_R[i], thermo.dhf_over_R[i], thermo.s0_over_R[i])
+                coeffs_lo, coeffs_hi = th_fitter.fit_nasapolys_full(thermo.T, Tci, cp_over_R[i, :], h_over_RT[i,:], s_over_R[i, :], thermo.cp0_over_R[i], thermo.dhf_over_R[i], thermo.s0_over_R[i])
         else:
-            warning_msg.warning_not_nasa7(thermo, output_dir)
-            coeffs_lo, coeffs_hi = th_fitter.fit_nasapolys_full(thermo.T, Tci, cp_over_R[i,:], h_over_RT[i,:], s_over_R[i,:], thermo.cp0_over_R[i], thermo.dhf_over_R[i], thermo.s0_over_R[i])
+            warning_msg.warning_not_nasa7(thermo, sp_i, output_dir)
+            coeffs_lo, coeffs_hi = th_fitter.fit_nasapolys_full(thermo.T, Tci, cp_over_R[i, :], h_over_RT[i, :], s_over_R[i, :], thermo.cp0_over_R[i], thermo.dhf_over_R[i], thermo.s0_over_R[i])
 
         nasa_coeffs_lo[i] = coeffs_lo
         nasa_coeffs_hi[i] = coeffs_hi
@@ -226,7 +226,7 @@ def fit_mixture_thermo(data):
     """
     Refit Cantera based thermodynamics (=NASA7-polynomials).
     """
-    Tci = np.where(data.T==data.Tmid)[0][0]
+    Tci = np.where(data.T == data.Tmid)[0][0]
     cp_over_R, h_over_RT, s_over_R = nasa_normalisation(data.T, data.cp, data.h, data.s)
     coeffs_lo, coeffs_hi = th_fitter.fit_nasapolys_full(data.T, Tci, cp_over_R[0], h_over_RT[0], s_over_R[0], data.cp0_over_R, data.dhf_over_R, data.s0_over_R)
     return coeffs_lo, coeffs_hi
@@ -234,20 +234,20 @@ def fit_mixture_thermo(data):
 
 def nasa7_fit_quality(data, thermo_fits, output_dir, plot=True):
     """
-    Ensure that the newly generated NASA7-polynomial coefficients fullfil their 
+    Ensure that the newly generated NASA7-polynomial coefficients fullfil their
     continuity-property and that the error to original data is not large.
     data: a class object with an access to original Cantera data.
     thermo_fits: output of the refit_ct_thermo() function
     return: Boolean success
     """
     nasa_coeffs_lo = np.atleast_2d(thermo_fits[0])
-    nasa_coeffs_hi = np.atleast_2d(thermo_fits[1])    
+    nasa_coeffs_hi = np.atleast_2d(thermo_fits[1])
     rel_tol = 5e-3
     N = data.cp.shape[0]
     success = True
     for i in range(N):
         err_cp, err_h, err_s = th_fitter.error_nasa7(data.T, data.cp[i,:], data.h[i,:], data.s[i,:], data.Tmid, nasa_coeffs_lo[i,:], nasa_coeffs_hi[i,:], ct.gas_constant)
-        
+
         fit_ok = (err_cp < rel_tol) and (err_h < rel_tol) and (err_s < rel_tol)
         if(not fit_ok):
             success = False
@@ -259,8 +259,8 @@ def nasa7_fit_quality(data, thermo_fits, output_dir, plot=True):
             warning_msg.warning_nasa7_continuity(data.names[i], output_dir)
 
         if( (not (fit_ok and continuous_fit)) and plot):
-            fig_dir = os.path.join(output_dir, "Figures")
-            os.makedirs(fig_dir, exist_ok=True)
+            fig_dir = Path(output_dir, "Figures")
+            fig_dir.mkdir(exist_ok=True)
             cp_over_R, h_over_RT, s_over_R = nasa_normalisation(data.T, data.cp, data.h, data.s)
             plot_nasa7_comparison(data.names[i], data.T, cp_over_R[i,:], h_over_RT[i,:], s_over_R[i,:], data.Tmid, nasa_coeffs_lo[i,:], nasa_coeffs_hi[i,:], fig_dir)
 
@@ -279,7 +279,7 @@ def get_elements(thermo, sp_i):
     return elements
 
 
-def ct2foam_thermo_writer(species_file, thermo_file, reactions_file, data, transport_fits, thermo_fits):
+def ct2foam_thermo_writer(species_file: Path, thermo_file: Path, reactions_file: Path, data, transport_fits, thermo_fits):
     """
     Wrapper to call the OpenFOAM writer to generate entries for thermophysicalProperties file.
     species_file: path to species.foam including a list of species in mechanism based order
@@ -288,14 +288,14 @@ def ct2foam_thermo_writer(species_file, thermo_file, reactions_file, data, trans
     transport_fits: output of fit_ct_transport()
     thermo_fits: output of refit_ct_thermo()
     """
-    if os.path.exists(thermo_file):
-        os.remove(thermo_file)
-    
-    if os.path.exists(reactions_file):
-        os.remove(reactions_file)
-    
-    if os.path.exists(species_file):
-        os.remove(species_file)
+
+    # - py-3.6 does not support exists_ok
+    if(thermo_file.exists()):
+        thermo_file.unlink()
+    if(reactions_file.exists()):
+        reactions_file.unlink()
+    if(species_file.exists()):
+        species_file.unlink()
 
     writer.write_reactions(reactions_file)
 
@@ -306,13 +306,13 @@ def ct2foam_thermo_writer(species_file, thermo_file, reactions_file, data, trans
     writer.write_species_list(species_file, data.gas.species_names)
 
     for sp_i in data.gas.species_names:
-        
+
         i = data.gas.species_index(sp_i)
         elements = get_elements(data, sp_i)
         writer.write_thermo_transport(thermo_file, sp_i, W[i], As[i], Ts[i], poly_mu[i,:], poly_kappa[i,:], logpoly_mu[i,:], logpoly_kappa[i,:], Tmid, T[0], T[-1], nasa7_lo[i,:], nasa7_hi[i,:], elements=elements)
 
 
-def ctmix2foam_thermo_writer(species_file, thermo_file, reactions_file, data, transport_fits, thermo_fits):
+def ctmix2foam_thermo_writer(species_file: Path, thermo_file: Path, reactions_file: Path, data, transport_fits, thermo_fits):
     """
     Wrapper to call the OpenFOAM writer to generate entries for thermophysicalProperties file.
     species_file: path to species.foam including a list of species in mechanism based order
@@ -322,20 +322,19 @@ def ctmix2foam_thermo_writer(species_file, thermo_file, reactions_file, data, tr
     thermo_fits: output of refit_ct_thermo()
     """
 
-    if os.path.exists(thermo_file):
-        os.remove(thermo_file)
-    
-    if os.path.exists(reactions_file):
-        os.remove(reactions_file)
-    
-    if os.path.exists(species_file):
-        os.remove(species_file)
+    # - py-3.6 does not support exists_ok
+    if(thermo_file.exists()):
+        thermo_file.unlink()
+    if(reactions_file.exists()):
+        reactions_file.unlink()
+    if(species_file.exists()):
+        species_file.unlink()
 
     writer.write_reactions(reactions_file)
 
     T, Tmid, W = data.T, data.Tmid, data.W
     As, Ts, _, poly_mu, poly_kappa, logpoly_mu, logpoly_kappa  = transport_fits
     nasa7_lo, nasa7_hi = thermo_fits
-      
+
     elements = None
     writer.write_thermo_transport(thermo_file, data.names[0], W[0], As[0], Ts[0], poly_mu[0], poly_kappa[0], logpoly_mu[0], logpoly_kappa[0], Tmid, T[0], T[-1], nasa7_lo, nasa7_hi, elements=elements)

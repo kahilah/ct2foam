@@ -1,27 +1,28 @@
 import unittest
 import numpy as np
 import os
+from pathlib import Path
 
-from . import  ct_properties
-from . import  transport_fitter as tr_fitter
-from . import  thermo_fitter as th_fitter
-from . import  ct2foam_utils 
-from . import  foam_writer 
-
+from ct2foam.thermo_transport import ct_properties
+from ct2foam.thermo_transport import  transport_fitter as tr_fitter
+from ct2foam.thermo_transport import  thermo_fitter as th_fitter
+from ct2foam.thermo_transport import ct2foam_utils 
+from ct2foam.thermo_transport import  foam_writer 
 
 """
 OF_referece/Test-thermoMixture.C is used as a source of the reference data tested here.
 """
+
 eps = 1e-12
-R = 8314.47006650545 # taken from openFoam -- differs slightly from standards
-cwd = os.getcwd()
-test_dir = os.path.join(cwd, "test_data/OF_reference/")
+R = 8314.47006650545  # taken from openFoam -- differs slightly from standards
+test_data_dir = Path(Path(__file__).parent.parent, "test_data")
+
 
 class TestThermoTransport(unittest.TestCase):
 
     def test_sutherland0(self):
         T, As, Ts = 1, 1, 1
-        mu=tr_fitter.sutherland(T, As, Ts)
+        mu = tr_fitter.sutherland(T, As, Ts)
         mu_foam = 0.5
         self.assertTrue(np.abs(mu-mu_foam) < eps)
 
@@ -29,22 +30,22 @@ class TestThermoTransport(unittest.TestCase):
         T, As, Ts, W = 1, 1, 1, 2
         cv_mole = -R + 4
         kappa_foam = 936.697882481863 
-        mu=tr_fitter.sutherland(T, As, Ts)
-        kappa=tr_fitter.euken(mu, cv_mole, W, R)
+        mu = tr_fitter.sutherland(T, As, Ts)
+        kappa = tr_fitter.euken(mu, cv_mole, W, R)
         self.assertTrue(np.abs(kappa-kappa_foam) < eps)
 
     def test_sutherland1(self):
-        T, As, Ts = 400, 1.67212e-06, 170.672 #H2O
-        mu=tr_fitter.sutherland(T, As, Ts)
+        T, As, Ts = 400, 1.67212e-06, 170.672  # H2O
+        mu = tr_fitter.sutherland(T, As, Ts)
         mu_foam = 2.34407155073317e-05
         self.assertTrue(np.abs(mu-mu_foam) < eps)
 
     def test_euken1(self):
-        T, As, Ts, W = 400, 1.67212e-06, 170.672, 18.0153 #H2O
+        T, As, Ts, W = 400, 1.67212e-06, 170.672, 18.0153  # H2O
         cv_mole = 26123.236960773
         kappa_foam = 0.0640159441308283
-        mu=tr_fitter.sutherland(T, As, Ts)
-        kappa=tr_fitter.euken(mu, cv_mole, W, R)
+        mu = tr_fitter.sutherland(T, As, Ts)
+        kappa = tr_fitter.euken(mu, cv_mole, W, R)
         self.assertTrue(np.abs(kappa-kappa_foam) < eps)
 
     def test_poly0(self):
@@ -54,8 +55,8 @@ class TestThermoTransport(unittest.TestCase):
         mu_foam =  1460.0
         kappa_foam = 5620.0
         mu, kappa = tr_fitter.eval_polynomial(poly_coeffs_mu, poly_coeffs_kappa, T)
-        self.assertTrue(np.abs(mu-mu_foam)/np.abs(mu_foam) < eps)
-        self.assertTrue(np.abs(kappa-kappa_foam)/np.abs(kappa_foam) < eps)
+        self.assertTrue(np.abs(mu - mu_foam) / np.abs(mu_foam) < eps)
+        self.assertTrue(np.abs(kappa - kappa_foam) / np.abs(kappa_foam) < eps)
 
     def test_logpoly0(self):
         T = 400
@@ -64,16 +65,16 @@ class TestThermoTransport(unittest.TestCase):
         mu_foam =  72.8870655981874
         kappa_foam = 72.8870655981874
         mu, kappa = tr_fitter.eval_log_polynomial(poly_coeffs_mu, poly_coeffs_kappa, T)
-        self.assertTrue(np.abs(mu-mu_foam)/np.abs(mu_foam) < eps)
+        self.assertTrue(np.abs(mu - mu_foam) / np.abs(mu_foam) < eps)
         self.assertTrue(np.abs(kappa-kappa_foam)/np.abs(kappa_foam) < eps)
 
     def test_transport_fit(self):
-        T = 400
+
         data = ct_properties.ctThermoTransport("h2o2.cti", verbose=False)
         data.evaluate_properties()
 
         transport_fits = ct2foam_utils.fit_ct_transport(data)        
-        success = ct2foam_utils.transport_fit_quality(data, transport_fits, test_dir, False, 0.02, 0.08, 5e-3)
+        success = ct2foam_utils.transport_fit_quality(data, transport_fits, test_data_dir, False, 0.02, 0.08, 5e-3)
         self.assertTrue(success)
     
     def test_transport_sanity(self):
@@ -91,7 +92,7 @@ class TestThermoTransport(unittest.TestCase):
         As, Ts, _, poly_mu, poly_kappa, log_poly_mu, log_poly_kappa= ct2foam_utils.fit_ct_transport(data)
 
         mu_s = tr_fitter.sutherland(T, As[i], Ts[i])
-        kappa_s=tr_fitter.euken(mu_s, cv_mole, W, R)
+        kappa_s = tr_fitter.euken(mu_s, cv_mole, W, R)
         mu_logp, kappa_logp = tr_fitter.eval_log_polynomial(log_poly_mu[i,:], log_poly_kappa[i,:], T)
         mu_p, kappa_p = tr_fitter.eval_polynomial(poly_mu[i,:], poly_kappa[i,:], T)
 
@@ -124,8 +125,7 @@ class TestThermoTransport(unittest.TestCase):
         self.assertTrue(np.abs(s-s_foam)/np.abs(s_foam) < eps)
 
     def test_nasa9(self):
-        import os
-        thermo = ct_properties.ctThermoTransport(os.path.join(test_dir, "../h2o2_mod.yaml"), verbose=False)
+        thermo = ct_properties.ctThermoTransport(Path(test_data_dir, "h2o2_mod.yaml"), verbose=False)
         nasa7 = thermo.is_nasa7(0)
         self.assertFalse(nasa7)
     
@@ -136,8 +136,8 @@ class TestThermoTransport(unittest.TestCase):
 
         data = ct_properties.ctThermoTransport(mech, verbose=False)
         data.evaluate_mixture_properties(mix_name, ct_mixture)
-        transport_fits = ct2foam_utils.fit_ct_transport(data)        
-        success = ct2foam_utils.transport_fit_quality(data, transport_fits, test_dir, plot=False, rel_tol_sutherland=2e-2, rel_tol_Euken=5e-2, rel_tol_poly=5e-3)
+        transport_fits = ct2foam_utils.fit_ct_transport(data)
+        success = ct2foam_utils.transport_fit_quality(data, transport_fits, test_data_dir, plot=False, rel_tol_sutherland=2e-2, rel_tol_Euken=5e-2, rel_tol_poly=5e-3)
 
         # rough test whether they are in the right scale...
         Tref = 980
@@ -151,7 +151,7 @@ class TestThermoTransport(unittest.TestCase):
         self.assertTrue(success)
         self.assertTrue(np.abs(mu_p[Ti] - mu_ref)/np.abs(mu_ref) < 0.01)
         self.assertTrue(np.abs(kappa_p[Ti] - kappa_ref)/np.abs(kappa_ref) < 0.01)
-    
+
     def test_mixture_thermo(self):
         mech = "gri30.cti"
         mix_name = "test"
@@ -160,7 +160,7 @@ class TestThermoTransport(unittest.TestCase):
         data = ct_properties.ctThermoTransport(mech, verbose=False)
         data.evaluate_mixture_properties(mix_name, ct_mixture)
         thermo_fits = ct2foam_utils.fit_mixture_thermo(data)
-        success = ct2foam_utils.nasa7_fit_quality(data, thermo_fits, test_dir, plot=False)
+        success = ct2foam_utils.nasa7_fit_quality(data, thermo_fits, test_data_dir, plot=False)
 
         cp_ref = 1.15e3
         cp = R * th_fitter.cp_nasa7(nasa7_Tmid, nasa7_Tmid, thermo_fits[0], thermo_fits[1]) / data.W
@@ -170,8 +170,8 @@ class TestThermoTransport(unittest.TestCase):
 
     def test_thermo_foam_writer(self):
         
-        test_file = os.path.join(test_dir, "testDict")
-        foam_file_ref = os.path.join(test_dir, "refDict")
+        test_file = Path(test_data_dir, "testDict")
+        foam_file_ref = Path(test_data_dir, "OF_reference", "refDict")
 
         name = "C2H2"
         W = 1.123
@@ -185,15 +185,15 @@ class TestThermoTransport(unittest.TestCase):
         nasa7_Tlo, nasa7_Thi = 200, 5000
         nasa7_lo = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
         nasa7_hi = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
-        elements={"C":2, "H":2}
+        elements = {"C": 2, "H": 2}
         foam_writer.write_thermo_transport(test_file, name, W, As, Ts, poly_mu, poly_kappa, logpoly_mu, logpoly_kappa, nasa7_Tmid, nasa7_Tlo, nasa7_Thi, nasa7_lo, nasa7_hi, elements=elements)
-        value = os.system("diff -q " + repr(test_file) + " " + repr(foam_file_ref))
-        self.assertTrue(value==0)
+        value = os.system("diff -q " + str(test_file) + " " + str(foam_file_ref))
+        self.assertTrue(value == 0)
         # clean-up
-        os.remove(test_file)
+        test_file.unlink()
 
         # The following more elaborate test fails if ran on different architechtures (floating point differences)
-        #Writes a dictionary which is used by test_data/OF_reference/Test_thermoMixture.C
+        # Writes a dictionary which is used by test_data/OF_reference/Test_thermoMixture.C
         """
         from shutil import copyfile
         data = ct_properties.ctThermoTransport("h2o2.cti", verbose=False)
@@ -201,12 +201,12 @@ class TestThermoTransport(unittest.TestCase):
     
         transport_fits = ct2foam_utils.fit_ct_transport(data, poly_order=3)
         cwd = os.getcwd()
-        thermo_fits = ct2foam_utils.refit_ct_thermo(data, data.Tmid, test_dir)
+        thermo_fits = ct2foam_utils.refit_ct_thermo(data, data.Tmid, test_data_dir)
 
-        foam_file = os.path.join( test_dir, "thermoDict_H2")
-        foam_file_tmp = os.path.join(test_dir, "thermoDict_H2_orig")
-        r_file = os.path.join(test_dir, "reactions.foam")
-        sp_file = os.path.join(test_dir, "species.foam")
+        foam_file = os.path.join( test_data_dir, "thermoDict_H2")
+        foam_file_tmp = os.path.join(test_data_dir, "thermoDict_H2_orig")
+        r_file = os.path.join(test_data_dir, "reactions.foam")
+        sp_file = os.path.join(test_data_dir, "species.foam")
         copyfile(foam_file, foam_file_tmp)
         ct2foam_utils.ct2foam_thermo_writer(sp_file, foam_file, r_file, data, transport_fits, thermo_fits)
         value = os.system("diff -q " + repr(foam_file) + " " + repr(foam_file_tmp))

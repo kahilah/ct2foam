@@ -11,13 +11,13 @@ class ctThermoTransport:
         - Tmid: utilised by thermo_fitter w.r.t NASA polynomial fitting process.
         - verbose: extra printouts whenever available.
         """
-        self.mechanismFile =  mechanismFile
-        self.outputDir =  outputDir
+        self.mechanismFile = str(mechanismFile)
+        self.outputDir = outputDir
         self.verbose = verbose
 
         self.T_std = 298.15
-        self.T     = np.sort(T)
-        self.Tmid  =   Tmid
+        self.T = np.sort(T)
+        self.Tmid = Tmid
         # insert Tcommon into the T array sustaining sorting
         idx = self.T.searchsorted(self.Tmid)
         self.T = np.concatenate((self.T[:idx], [self.Tmid], self.T[idx:]))
@@ -97,9 +97,9 @@ class ctThermoTransport:
             i = gas.species_index(sp_i)
 
             # standard properties
-            self.cp0_over_R[i] =  gas.species(i).thermo.cp(self.T_std)/ct.gas_constant # this calls molar cp <==> consistent
-            self.dhf_over_R[i] =  gas.species(i).thermo.h(self.T_std)/ct.gas_constant
-            self.s0_over_R[i]  =  gas.species(i).thermo.s(self.T_std)/ct.gas_constant
+            self.cp0_over_R[i] = gas.species(i).thermo.cp(self.T_std)/ct.gas_constant # this calls molar cp <==> consistent
+            self.dhf_over_R[i] = gas.species(i).thermo.h(self.T_std)/ct.gas_constant
+            self.s0_over_R[i]  = gas.species(i).thermo.s(self.T_std)/ct.gas_constant
 
             for j in range(len(self.T)):
 

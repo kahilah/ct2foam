@@ -1,4 +1,6 @@
 
+- camelCase --> snake_case
+
 - MANIFEST.in has now a relative path, which results in a separate pyjac2foam dir under conda environment installation path. 
     - Consider including under the main ct2foam package folder.
 
@@ -7,7 +9,7 @@
 
 - OF writer  
     - nMoles 1; entry may be unnexessary nowadays
-   
+
 - correct_coeffs() function could be tidied up by using the existing nasa-functions.
 
 - Tcommon not required to be within the fit as a data point --> would simplify the setup
@@ -30,7 +32,7 @@
 - Throughout the code, efficiency could be enhanced by optimizing for loops to vectorized operations in numpy. However, for the time being
 function access to Cantera transport properties is more of a bottle neck as well as the loading of the environment.
 
-
+- python-3.6 does not support Path.unlink(exists_ok=True) --> fix in ct2foam_utils if pyjac updates some day.
 
 
 
