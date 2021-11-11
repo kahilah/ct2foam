@@ -1,11 +1,9 @@
+- extend unit tests for mass diffusion coefficient estimation
 
 - camelCase --> snake_case
 
 - MANIFEST.in has now a relative path, which results in a separate pyjac2foam dir under conda environment installation path. 
     - Consider including under the main ct2foam package folder.
-
-- in test_thermo_transport.py you could get test_data path relative to the one in pip installation
-    --> enables running unittests anywhere. No they must be run under ct2foam folder.
 
 - OF writer  
     - nMoles 1; entry may be unnexessary nowadays

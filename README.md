@@ -1,12 +1,17 @@
 # ct2foam -- Convert Cantera based thermophysical data To OpenFoam format 
-ct2foam enables user to generate OpenFoam dictionary entries for NASA-polynomials, Sutherland and other transport models required in <code>thermophysicalProperties</code> file. This python package utilises [Cantera](https://cantera.org/) to generate such entries for all species in a given chemical mechanism or for gaseous mixtures defined by the user. With the general functions provided in this package, it is also possible to create NASA-polynomial, Sutherland and other polynomial type fits for thermophysical data based on experiments.
+ct2foam enables user to generate OpenFoam dictionary entries for <code>thermophysicalProperties</code> and <code>thermophysicalTransport</code>, such as:
+    - NASA-polynomials
+    - Sutherland and log-polynomial representations of viscosity and conductivity
+    - Possibility to evaluate and generate mass diffusion coeffcient tables for Fickian diffusion models (new and testing on-going) 
+
+This python package utilises [Cantera](https://cantera.org/) to generate such entries for all species in a given chemical mechanism or for gaseous mixtures defined by the user. With the general functions provided in this package, it is also possible to create entries based on experiments.
 
 Furthermore, this package supports the users of [DLBFoam](https://github.com/Aalto-CFD/DLBFoam) and [pyJac](https://github.com/SLACKHA/pyJac) by introducing an automated pyjac2foam script which builds a compilation environment for pyjac routines as well as utilises ct2foam to generate consistent thermodynamics dictionaries with pyJac. See pyjac2foam module instructions below for further information.
 
 ## Installation
 Package relies on Cantera installation, for which the recommended installation principle is via [conda](https://cantera.org/install/index.html). Hence, the recommended and easiest installation path is via conda as well. In particular, we recommend using the Miniconda package manager for this. 
 
-For users interested to use the pyjac2foam module, python version must be set <code>python<=3.6</code>. Otherwise, the latest releases can be utilised (tested up to python 3.8.8).
+For users interested to use the pyjac2foam module, python version must be set <code>python<=3.6</code>. Otherwise, the latest releases can be utilised (tested up to python 3.9.7).
 
 - To install in conda environment:
 ```

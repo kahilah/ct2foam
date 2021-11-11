@@ -1,10 +1,17 @@
+import sys
 import cantera as ct
 import numpy as np
 
 class ctThermoTransport:
-    def __init__(self, mechanismFile, outputDir=None, T=np.linspace(280,3000,128), Tmid=1000.0, verbose=True):
+    def __init__(
+            self, mechanismFile,
+            outputDir=None,
+            T=np.linspace(280, 3000, 128),
+            Tmid=1000.0,
+            verbose=True):
         """
-        A class providing functions to access cantera mechanism and thermo + transport data, required in polynomial fitting.
+        A class providing functions to access cantera mechanism and 
+        thermo + transport data, required in polynomial fitting.
         - mechanismFile: path to file
         - outputDir: Where you want the mechanism file output to be placed.
         - T: sampling ratio of temperature for evaluating thermophysical properties for fitting.
@@ -22,10 +29,10 @@ class ctThermoTransport:
         idx = self.T.searchsorted(self.Tmid)
         self.T = np.concatenate((self.T[:idx], [self.Tmid], self.T[idx:]))
 
-        self.gas        = self.check_mechanism()
-        self.R          = ct.gas_constant
-        self.W          = self.gas.molecular_weights
-        self.names      = self.gas.species_names
+        self.gas = self.check_mechanism()
+        self.R = ct.gas_constant
+        self.W = self.gas.molecular_weights
+        self.names = self.gas.species_names
 
         # sampling matrices of thermophysical variables (data-set per row)
         self.mu = np.zeros((self.gas.n_species, len(self.T)))
@@ -40,47 +47,42 @@ class ctThermoTransport:
         self.dhf_over_R = np.zeros(self.gas.n_species)
         self.s0_over_R = np.zeros(self.gas.n_species)
 
-
     def check_mechanism(self):
         "Should catch any standard error related to mechanism."
         gas = ct.Solution(self.mechanismFile)
         return gas
 
-
     def get_thermo_fit_type(self, species_name):
         """
         species_name: species name
-        return: - type_name = [NasaPoly2 (NASA7), Nasa9PolyMultiTempRegion (NASA9), Shomate], 
+        return: - type_name = [NasaPoly2 (NASA7), Nasa9PolyMultiTempRegion (NASA9), Shomate],
         """
         i = self.gas.species_index(species_name)
         type_name = type(self.gas.species(i).thermo).__name__
         return type_name
 
-
     def get_nasa7_coeffs(self, species_name):
         """
         species_name: species_name
         return: the corresponding coeffcients for the analytical polynomial.
-        Note, can return other than nasa-type coefficient, so user should catch/prevent that prior to this call.
+        Note, can return other than nasa-type coefficient, so user should
+        catch/prevent that prior to this call.
         """
         i = self.gas.species_index(species_name)
         return self.gas.species(i).thermo.coeffs
 
-
-
     def is_nasa7(self, species_name):
         fit_type = self.get_thermo_fit_type(species_name)
-        if(fit_type=="NasaPoly2" ):
+        if(fit_type == "NasaPoly2"):
             return True
         else:
             return False
-
 
     def evaluate_properties(self):
         '''
         Evaluate according to the temperature sampling, defined in class declaration.
         '''
-        # Initialise a free flame object
+        # Initialisation
         gas = ct.Solution(self.mechanismFile)
         p0 = ct.one_atm     # - not utilised
         gas.TP = 300.0, p0  # - not utilised
@@ -90,16 +92,17 @@ class ctThermoTransport:
             print("Evaluating thermophysical properties over species.")
 
         for sp_i in gas.species_names:
-            
+
             self.check_temperature_limits(sp_i)
 
             reactants = sp_i + ':1.0'
             i = gas.species_index(sp_i)
 
             # standard properties
-            self.cp0_over_R[i] = gas.species(i).thermo.cp(self.T_std)/ct.gas_constant # this calls molar cp <==> consistent
-            self.dhf_over_R[i] = gas.species(i).thermo.h(self.T_std)/ct.gas_constant
-            self.s0_over_R[i]  = gas.species(i).thermo.s(self.T_std)/ct.gas_constant
+            # the following calls molar cp <==> consistent
+            self.cp0_over_R[i] = gas.species(i).thermo.cp(self.T_std) / ct.gas_constant
+            self.dhf_over_R[i] = gas.species(i).thermo.h(self.T_std) / ct.gas_constant
+            self.s0_over_R[i] = gas.species(i).thermo.s(self.T_std) / ct.gas_constant
 
             for j in range(len(self.T)):
 
@@ -109,8 +112,8 @@ class ctThermoTransport:
                 self.kappa[i][j] = gas.thermal_conductivity
 
                 self.cp[i][j] = gas.cp_mole
-                self.h[i][j]  = gas.enthalpy_mole
-                self.s[i][j]  = gas.entropy_mole
+                self.h[i][j] = gas.enthalpy_mole
+                self.s[i][j] = gas.entropy_mole
 
                 self.cv_mole[i][j] = gas.cv_mole
 
@@ -122,7 +125,7 @@ class ctThermoTransport:
         X is molar concentration in cantera style formatting
         - overwrites class level array-type declarations with smalled dimension data types.
         '''
-        # Initialise a free flame object
+        # Initialisation
         gas = ct.Solution(self.mechanismFile)
         p0 = ct.one_atm     # - not utilised
         gas.TPX = 300.0, p0, X 
@@ -142,9 +145,9 @@ class ctThermoTransport:
         # standard property, potentially required in cp re-fitting
         gas0 = ct.Solution(self.mechanismFile)
         gas0.TPX = self.T_std, p0, X 
-        cp0_over_R = np.atleast_1d(gas0.cp_mole/ct.gas_constant)
-        dhf_over_R = np.atleast_1d(gas0.enthalpy_mole/ct.gas_constant)
-        s0_over_R = np.atleast_1d(gas0.entropy_mole/ct.gas_constant)
+        cp0_over_R = np.atleast_1d(gas0.cp_mole / ct.gas_constant)
+        dhf_over_R = np.atleast_1d(gas0.enthalpy_mole / ct.gas_constant)
+        s0_over_R = np.atleast_1d(gas0.entropy_mole / ct.gas_constant)
         W = np.atleast_1d(gas0.mean_molecular_weight)
 
         for i in range(len(self.T)):
@@ -156,14 +159,14 @@ class ctThermoTransport:
 
             # divide by gas constant according to NASA JANAF definitions
             cp[0][i] = gas.cp_mole
-            h[0][i]  = gas.enthalpy_mole
-            s[0][i]  = gas.entropy_mole
+            h[0][i] = gas.enthalpy_mole
+            s[0][i] = gas.entropy_mole
 
             cv_mole[0][i] = gas.cv_mole
 
-        #override the class initialisation
-        self.W          = W
-        self.names      = [mixture_name]
+        # override the class initialisation
+        self.W = W
+        self.names = [mixture_name]
         self.mu = mu
         self.kappa = kappa
         self.cv_mole = cv_mole
@@ -176,7 +179,6 @@ class ctThermoTransport:
         
         return 0
 
-
     def check_temperature_limits(self, species_name):
         """
         Print a warning if user given temperature limits are out of the original data limits.
@@ -187,8 +189,69 @@ class ctThermoTransport:
         maxT_user = np.max(self.T)
 
         if(self.verbose):
-            if( minT_ref > minT_user ):
-                print("\t" + species_name + ": Warning, given min(T)=" + repr(minT_user) +  "K is out of original bounds. (" + repr(minT_ref) + 'K)' )
-            if( maxT_ref < maxT_user ):
-                print("\t" + species_name + ": Warning, given max(T)=" + repr(maxT_user) +  "K is out of original bounds. (" + repr(maxT_ref) + 'K)' )
+            if(minT_ref > minT_user):
+                print(
+                    "\t" + species_name + ": Warning, given min(T)=" +
+                    repr(minT_user) + "K is out of original bounds. (" +
+                    repr(minT_ref) + 'K)')
+            if(maxT_ref < maxT_user):
+                print(
+                    "\t" + species_name + ": Warning, given max(T)=" +
+                    repr(maxT_user) + "K is out of original bounds. (" +
+                    repr(maxT_ref) + 'K)')
 
+
+def evaluate_diff_coeffs(gas, Trange=np.linspace(280, 3000, 128), basis="mass"):
+    """
+    Evaluate mixture averaged mass diffusion properties
+    at various temperature conditions.
+    Note that cantera evaluates binary diffusion coefficients
+    in unit pressure and uses the 1/p relation to obtain pressure
+    dependence. Hence, here we don't need to loop over pressure values.
+    """
+
+    p0 = gas.P
+    gas.transport_model = 'Multi'
+
+    Dm = np.zeros((gas.n_species, len(Trange)))
+    Dij = np.zeros(
+        (gas.binary_diff_coeffs.shape[0],
+            gas.binary_diff_coeffs.shape[1],
+            len(Trange)))
+
+    for j in range(len(Trange)):
+        gas.TP = Trange[j], p0
+
+        Dij[:, :, j] = gas.binary_diff_coeffs
+
+        if(basis == "mass"):
+            Dm[:, j] = gas.mix_diff_coeffs_mass
+        elif(basis == "mole"):
+            Dm[:, j] = gas.mix_diff_coeffs_mole
+        else:
+            sys.exit("Error: basis = " + basis + " not found.")
+
+    return Dij, Dm
+
+def Dm_TP_matrix(p_arr, Dm):
+    """
+    Cantera evaluates binary diffusion coefficients
+    in unit pressure and uses the 1/p relation to obtain pressure
+    dependence. Hence, here we normalise the non-normalised
+    mixture-averaged diffusion coefficients (Dm) by pressure
+    and return matrix of normalised values.
+    Input:
+        p_arr: m-sized array of pressure values.
+        Dm: [k,n] sized array of mixture-averaged diffusion coefficients
+            corresponding to k species and m temperature values
+    """
+    k = Dm.shape[0]
+    m = len(p_arr)
+    n = Dm.shape[1]
+    Dm_matrix = np.zeros((k, m, n))
+    for i in range(k):
+        Dmi = Dm[i]
+        for j, pi in enumerate(p_arr):
+            Dm_matrix[i, j, :] = Dmi / pi
+
+    return Dm_matrix

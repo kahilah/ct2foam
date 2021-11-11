@@ -1,6 +1,7 @@
 import unittest
 import numpy as np
 import os
+import cantera as ct
 from pathlib import Path
 
 from ct2foam.thermo_transport import ct_properties
@@ -217,6 +218,31 @@ class TestThermoTransport(unittest.TestCase):
         os.remove(r_file)
         os.remove(sp_file)
         """
+
+    def test_Dm(self):
+
+        mech = 'gri30.yaml'
+        fuel = 'CH4'
+        oxidant = 'O2:1, N2:3.76'
+        phi = 1.0
+
+        T_array = np.linspace(300, 3000, 32)
+        p_array = np.linspace(1e5, 10e5, 32)
+
+        T0 = 280
+        p_unity = 1
+        reactants = fuel + ':1,' + oxidant 
+
+        gas = ct.Solution(mech)
+        gas.TPX = T0, p_unity, reactants
+        gas.set_equivalence_ratio(phi, fuel, oxidant)
+
+        _, Dm = ct_properties.evaluate_diff_coeffs(gas, Trange=T_array)
+        Dm_matrix = ct_properties.Dm_TP_matrix(p_array, Dm)
+
+        Dm_h2 = Dm_matrix[gas.species_index("H2"), 0, 0]
+        ref = 7.90471218293889e-05
+        self.assertTrue(np.abs(Dm_h2 - ref)/np.abs(ref) < 1e-6)
 
 
 
