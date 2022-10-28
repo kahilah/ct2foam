@@ -175,7 +175,7 @@ def plot_nasa7_comparison(name, T, cp_over_R, h_over_RT, s_over_R, Tmid, coeffs_
     ax3.set_ylabel('s/R')
     ax3.set_xlabel('$T$[K]')
 
-    file = Path(output_dir, name + '_transport.png')
+    file = Path(output_dir, name + '_thermo.png')
     fig.savefig(file, bbox_inches='tight')
     fig.clf()
 
