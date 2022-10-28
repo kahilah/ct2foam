@@ -1,6 +1,8 @@
 
 - camelCase --> snake_case
 
+- run through the black formatter
+
 - MANIFEST.in has now a relative path, which results in a separate pyjac2foam dir under conda environment installation path. 
     - Consider including under the main ct2foam package folder.
 
