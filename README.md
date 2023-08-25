@@ -40,7 +40,9 @@ python -m unittest discover
 ## Running ct2foam:
 - Installation generates two global executables: <code>ct2foam</code> and <code>ctmix2foam</code> which can be run as follows:
 - <code>ct2foam --input h2o2.cti --output test_output --Tmid 1000.0 --plot </code>
-    - outputs OpenFoam compatible thermodynamical and transport dictionary entries under output directory such that NASA-polynomials have a middle temperature of 1000 K. Thermodynamical fits with error larger than user given (or here default) tolerances, will be plotted under <code>output/Figures</code> directory.
+    - outputs OpenFoam compatible thermodynamical and transport dictionary entries under output directory such that NASA-polynomials have a middle temperature of 1000 K. Thermodynamical fits with error larger than user given (or here default) tolerances, will be plotted under <code>output/Figures</code> directory. Supports
+    input arguments <code>--Tlow</code> and <code>--Thigh</code> for low and high temperature limits of the
+    NASA-polynomials, respectively.  
 -  <code> ctmix2foam --input h2o2.cti --output test_output --name air --mixture "O2:1,AR:4" --Tmid 1000.0 --plot  </code>
     - outputs data for a mixture, defines similar to standard input format in Cantera.
 - See <code>ct2foam -h</code> for help.

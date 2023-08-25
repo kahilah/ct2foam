@@ -1,5 +1,6 @@
 import argparse
 from pathlib import Path
+import numpy as np
 from ct2foam.thermo_transport import ct_properties
 from ct2foam.thermo_transport import ct2foam_utils as utils
 from ct2foam.thermo_transport import warning_msg
@@ -30,6 +31,14 @@ def main():
         help='Common temperature for NASA-7 thermodynamical fits.',
         default=1000.0, required=False)
     parser.add_argument(
+        '-Tl', '--Tlow', type=float,
+        help='Temperature low-limit for NASA-7 thermodynamical fits.',
+        default=280.0, required=False)
+    parser.add_argument(
+        '-Th', '--Thigh', type=float,
+        help='Temperature high-limit for NASA-7 thermodynamical fits.',
+        default=3000.0, required=False)
+    parser.add_argument(
         '-p', '--plot', action='store_true',
         help='Generate plots when available.', required=False)
     args = parser.parse_args()
@@ -37,7 +46,8 @@ def main():
     output_dir = init_dirs(args.output)
     warning_msg.init_log(output_dir, args.input)
 
-    data = ct_properties.ctThermoTransport(args.input, Tmid=args.Tmid)
+    Trange = np.linspace(args.Tlow, args.Thigh, 128)
+    data = ct_properties.ctThermoTransport(args.input, T=Trange, Tmid=args.Tmid)
     data.evaluate_properties()
 
     print("\nFitting transport properties:")

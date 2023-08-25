@@ -1,5 +1,6 @@
 import argparse
 from pathlib import Path
+import numpy as np
 from ct2foam.thermo_transport import ct_properties
 from ct2foam.thermo_transport import ct2foam_utils as utils
 from ct2foam.thermo_transport import warning_msg
@@ -34,6 +35,14 @@ def main():
         help='Common temperature for NASA-7 thermodynamical fits.',
         default=1000.0, required=False)
     parser.add_argument(
+        '-Tl', '--Tlow', type=float,
+        help='Temperature low-limit for NASA-7 thermodynamical fits.',
+        default=280.0, required=False)
+    parser.add_argument(
+        '-Th', '--Thigh', type=float,
+        help='Temperature high-limit for NASA-7 thermodynamical fits.',
+        default=3000.0, required=False)
+    parser.add_argument(
         '-p', '--plot', action='store_true',
         help='Generate plots when available.', required=False)
     args = parser.parse_args()
@@ -42,11 +51,12 @@ def main():
     mix_name = args.name
     ct_mixture = args.mixture
     nasa7_Tmid = args.Tmid
+    Trange = np.linspace(args.Tlow, args.Thigh, 128)
 
     output_dir = init_dirs(args.output)
     warning_msg.init_mixture_log(output_dir, mech, mix_name, ct_mixture)
 
-    data = ct_properties.ctThermoTransport(mech, Tmid=nasa7_Tmid)
+    data = ct_properties.ctThermoTransport(mech, T=Trange, Tmid=nasa7_Tmid)
     data.evaluate_mixture_properties(mix_name, ct_mixture)
 
     print("\nFitting transport properties:")
