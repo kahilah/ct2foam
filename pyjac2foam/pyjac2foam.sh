@@ -15,9 +15,9 @@ script_path=$(readlink -f "$0")
 script_dir=$(python -c 'import ct2foam; print(ct2foam.__path__[0])')
 cmake_dir="$script_dir/../pyjac2foam/cmake_directives"
 # parent dir of output
-input_rootdir="$(dirname $(realpath -s $pyjac_output))"
+input_rootdir=$(dirname "$(realpath -s $pyjac_output)")
 lib_path=$input_rootdir/lib
-foam_dir="$input_rootdir/foam"
+foam_dir=$input_rootdir/foam
 
 usage()
 {
@@ -52,12 +52,12 @@ check_cmake()
 init_build_dir()
 {
   # Copy original pyjac output for further modification and building
-  mkdir -p  $lib_path
-  rm -rf $lib_path/*
-  cp -r $pyjac_output "$lib_path/src"
+  mkdir -p  "$lib_path"
+  rm -rf "$lib_path"/*
+  cp -r "$pyjac_output" "$lib_path/src"
 
   # copy CMake directives to pyjac output
-  cp $cmake_dir/* $lib_path/
+  cp "$cmake_dir"/* "$lib_path/"
 
 }
 
@@ -69,14 +69,14 @@ modify_pyjac_src()
     echo "ERROR: $lib_path/src/chem_utils.h not found."
     exit 0
   fi
-  sed -i '4 a int PYJAC_NSP();\nint PYJAC_FWD_RATES();' $lib_path/src/chem_utils.h
-  sed -i '3 a int PYJAC_NSP()\n{\n    return NSP;\n}\nint PYJAC_FWD_RATES()\n{\n    return FWD_RATES;\n}' $lib_path/src/chem_utils.c
+  sed -i '4 a int PYJAC_NSP();\nint PYJAC_FWD_RATES();' "$lib_path/src/chem_utils.h"
+  sed -i '3 a int PYJAC_NSP()\n{\n    return NSP;\n}\nint PYJAC_FWD_RATES()\n{\n    return FWD_RATES;\n}' "$lib_path/src/chem_utils.c"
 }
 
 
 compile_pyjac_lib()
 {
-  pushd $lib_path > /dev/null
+  pushd "$lib_path" > /dev/null
     ./runCmake.sh
   popd > /dev/null
   echo 
@@ -88,7 +88,7 @@ rewrite_species()
 {
   mechPath="$lib_path/src/mechanism.h"
   #Determine the species within a pyjac output file
-  grep -A100000 'Species Indexes' $mechPath  > tmp.txt
+  grep -A100000 'Species Indexes' "$mechPath"  > tmp.txt
   grep -B100000 '*/' tmp.txt > tmp2.txt
   sed '1d;$d' tmp2.txt > tmp3.txt
   awk '{ print $2}' tmp3.txt > tmp4.txt
@@ -114,7 +114,7 @@ write_reactions_note()
 howto_include()
 {
   inc_f="$foam_dir/include_example.txt"
-  rm -f $inc_f
+  rm -f "$inc_f"
   printf "%s\n" \
     "system/controlDict:" \
     "libs" \
@@ -130,8 +130,8 @@ howto_include()
     "" \
     "constant/chemistryProperties:" \
     "    #include \"$foam_dir/reactions.foam\"" \
-    "" > $inc_f
-  cat $inc_f
+    "" > "$inc_f"
+  cat "$inc_f"
 }
 
 
@@ -167,8 +167,8 @@ if [ $help == 1 ]; then
     exit 2
 fi
 
-arg_check $mechanism
-arg_check $pyjac_output
+arg_check "$mechanism"
+arg_check "$pyjac_output"
 
 if [ ! -d "$pyjac_output" ]; then
    echo "ERROR: $pyjac_output path not found."
@@ -187,7 +187,7 @@ if [ $compile == 1 ]; then
     compile_pyjac_lib
 fi
 
-ct2foam -i $mechanism -o $foam_dir -T 1000.0 -p
+ct2foam -i "$mechanism" -o "$foam_dir" -T 1000.0 -p
 
 rewrite_species
 write_reactions_note
