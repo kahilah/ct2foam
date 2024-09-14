@@ -10,7 +10,7 @@ For users interested to use the pyjac2foam module, python version must be set <c
 
 - To install in conda environment:
 ```
-conda create --name ct2foam_env --channel cantera cantera python=3.6 numpy scipy matplotlib
+conda create --name ct2foam_env --channel cantera cantera python=3.6 numpy scipy matplotlib cvxopt
 cd my/installation/path
 git clone git@github.com:kahilah/ct2foam.git
 cd ct2foam
