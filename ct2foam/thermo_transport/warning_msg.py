@@ -10,7 +10,7 @@ def init_log(dir: Path, mechanism: str):
     today = date.today()    
     log_file = Path(dir, _log_file)
     with open(log_file, 'w') as output:
-        output.write("Data is generated: " + repr(today.strftime("%B %d, %Y")))
+        output.write("Data is generated: " + str(today.strftime("%B %d, %Y")))
         output.write("\nMechanism used: " + mechanism)
         output.write("\n")
 
@@ -19,18 +19,18 @@ def init_mixture_log(dir: Path, mechanism: str, mixture_name: str, mixture: str)
     today = date.today()
     log_file = Path(dir, _log_file)
     with open(log_file, 'w') as output:
-        output.write("Data is generated: " + repr(today.strftime("%B %d, %Y")))
+        output.write("Data is generated: " + str(today.strftime("%B %d, %Y")))
         output.write("\nMechanism used: " + mechanism)
-        output.write("\nMixture - " + repr(mixture_name) + ": " + mixture)
+        output.write("\nMixture - " + str(mixture_name) + ": " + mixture)
         output.write("\n")
 
 
 def warning_sutherland(output_dir: Path, specie_name: str, err_mu: float, std: float, err_kappa: float):
     warning = (
-        "\n\tWarning : " + repr(specie_name) +
+        "\n\tWarning : " + str(specie_name) +
         " fit error is larger than tolerance.\n" + "\tSutherland mu error: " +
-        repr(err_mu) + "\n" + "\tSutherland STD: " + repr(std) + "\n" +
-        "\tEuken kappa error: " + repr(err_kappa))
+        str(err_mu) + "\n" + "\tSutherland STD: " + str(std) + "\n" +
+        "\tEuken kappa error: " + str(err_kappa))
     print(warning)
     with open(Path(output_dir, _log_file), 'a') as f:
         print(warning, file=f)
@@ -43,10 +43,10 @@ def warning_polynomial(output_dir: Path, specie_name: str, err_mu: float, err_ka
         polynomial_type = "Log-polynomial"
 
     warning = (
-        "\n\tWarning : " + repr(specie_name) +
+        "\n\tWarning : " + str(specie_name) +
         " fit error is larger than tolerance.\n" + "\t" + polynomial_type +
-        " mu error: " + repr(err_mu) + "\n" + "\t" + polynomial_type +
-        " kappa error: " + repr(err_kappa))
+        " mu error: " + str(err_mu) + "\n" + "\t" + polynomial_type +
+        " kappa error: " + str(err_kappa))
     print(warning)
     with open(Path(output_dir, _log_file), 'a') as f:
         print(warning, file=f)
@@ -74,17 +74,17 @@ def error_consistency(sp_i: str, output_dir: Path):
 
 def warning_nasa7_err(name: str, rel_tol: float, err_cp: float, err_h: float, err_s: float, output_dir: Path):
     warning = (
-        "\n\ttWarning : " + repr(name) +
-        " NASA7 fit error is larger than tolerance " + repr(rel_tol) +
-        "\tcp error: " + repr(err_cp) + "\n" + "\th error: " + repr(err_h) + "\n" +
-        "\ts error: " + repr(err_s))
+        "\n\ttWarning : " + str(name) +
+        " NASA7 fit error is larger than tolerance " + str(rel_tol) +
+        "\tcp error: " + str(err_cp) + "\n" + "\th error: " + str(err_h) + "\n" +
+        "\ts error: " + str(err_s))
     print(warning)
     with open(Path(output_dir, _log_file), 'a') as f:
         print(warning, file=f)
 
 
 def warning_nasa7_continuity(name: str, output_dir: Path):
-    warning = ("\n\tWarning : " + repr(name) + ": the new NASA polynomial fit is not continuous.")
+    warning = ("\n\tWarning : " + str(name) + ": the new NASA polynomial fit is not continuous.")
     print(warning)
     with open(Path(output_dir, _log_file), 'a') as f:
         print(warning, file=f)        

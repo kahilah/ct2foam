@@ -209,7 +209,7 @@ class TestThermoTransport(unittest.TestCase):
         sp_file = os.path.join(test_data_dir, "species.foam")
         copyfile(foam_file, foam_file_tmp)
         ct2foam_utils.ct2foam_thermo_writer(sp_file, foam_file, r_file, data, transport_fits, thermo_fits)
-        value = os.system("diff -q " + repr(foam_file) + " " + repr(foam_file_tmp))
+        value = os.system("diff -q " + str(foam_file) + " " + str(foam_file_tmp))
         self.assertTrue(value==0)
         # clean-up
         copyfile(foam_file_tmp, foam_file)

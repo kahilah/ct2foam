@@ -54,7 +54,7 @@ def write_thermo_transport(file_name, name, MW, As, Ts, poly_mu, poly_kappa, log
         ############################################################################# 
         output.write('specie\n\t{\n')
         output.write('\t\tnMoles \t 1;\n')
-        output.write('\t\tmolWeight \t'+repr(MW)+';')
+        output.write('\t\tmolWeight \t'+str(MW)+';')
         output.write('\n\t}\n\n')
         #############################################################################
 
@@ -62,17 +62,17 @@ def write_thermo_transport(file_name, name, MW, As, Ts, poly_mu, poly_kappa, log
         output.write('\tthermodynamics')
         #############################################################################         
         output.write('\n\t{\n')
-        output.write('\t\tTlow\t\t'+repr(nasa7_Tlo)+';\n')
-        output.write('\t\tThigh\t\t'+repr(nasa7_Thi)+';\n')       
-        output.write('\t\tTcommon\t\t'+repr(nasa7_Tmid)+';\n')
+        output.write('\t\tTlow\t\t'+str(nasa7_Tlo)+';\n')
+        output.write('\t\tThigh\t\t'+str(nasa7_Thi)+';\n')       
+        output.write('\t\tTcommon\t\t'+str(nasa7_Tmid)+';\n')
         output.write('\t\tlowCpCoeffs\t(\t' )
         for wi in range(0,7): #NASA pol has 7 coeffs
-            output.write(repr(nasa7_lo[wi])) 
+            output.write(str(nasa7_lo[wi])) 
             output.write(' ')
         output.write(' );\n')
         output.write('\t\thighCpCoeffs\t(\t' )
         for wi in range(0,7):#NASA pol has 7 coeffs
-            output.write(repr(nasa7_hi[wi])) 
+            output.write(str(nasa7_hi[wi])) 
             output.write(' ')
         output.write(' );\n')
         output.write('\t}\n\n')
@@ -81,13 +81,13 @@ def write_thermo_transport(file_name, name, MW, As, Ts, poly_mu, poly_kappa, log
         output.write('\ttransport \n\t{\n')
         #############################################################################
 
-        output.write('\t\tAs\t'+repr(As)+';\n' )
-        output.write('\t\tTs\t'+repr(Ts)+';\n' )
+        output.write('\t\tAs\t'+str(As)+';\n' )
+        output.write('\t\tTs\t'+str(Ts)+';\n' )
 
         output.write('\t\tmuLogCoeffs<8>\t(\t' )
         for wi in range(8):
             if(wi < len(logpoly_mu_rev)):
-                output.write(repr(logpoly_mu_rev[wi])) 
+                output.write(str(logpoly_mu_rev[wi])) 
             else:
                 output.write("0") 
             output.write(' ')
@@ -96,7 +96,7 @@ def write_thermo_transport(file_name, name, MW, As, Ts, poly_mu, poly_kappa, log
         output.write('\t\tmuCoeffs<8>\t(\t' )
         for wi in range(8):
             if(wi < len(poly_mu_rev)):
-                output.write(repr(poly_mu_rev[wi])) 
+                output.write(str(poly_mu_rev[wi])) 
             else:
                 output.write("0") 
             output.write(' ')
@@ -105,7 +105,7 @@ def write_thermo_transport(file_name, name, MW, As, Ts, poly_mu, poly_kappa, log
         output.write('\t\tkappaLogCoeffs<8>\t(\t' )
         for wi in range(8):
             if(wi < len(logpoly_kappa_rev)):
-                output.write(repr(logpoly_kappa_rev[wi])) 
+                output.write(str(logpoly_kappa_rev[wi])) 
             else:
                 output.write("0") 
             output.write(' ')
@@ -113,7 +113,7 @@ def write_thermo_transport(file_name, name, MW, As, Ts, poly_mu, poly_kappa, log
         output.write('\t\tkappaCoeffs<8>\t(\t' )
         for wi in range(8):
             if(wi < len(poly_kappa_rev)):
-                output.write(repr(poly_kappa_rev[wi])) 
+                output.write(str(poly_kappa_rev[wi])) 
             else:
                 output.write("0") 
             output.write(' ')
@@ -128,7 +128,7 @@ def write_thermo_transport(file_name, name, MW, As, Ts, poly_mu, poly_kappa, log
             output.write('\n\t{\n')   
             # Variables for the elemental composition entry:
             for elem_i in elements.keys():
-                output.write("\t\t" + elem_i+"\t"+repr(int(elements[elem_i]))+';\n')         
+                output.write("\t\t" + elem_i+"\t"+str(int(elements[elem_i]))+';\n')         
             output.write('\t}\n')
             #############################################################################
         output.write('}\n\n')    

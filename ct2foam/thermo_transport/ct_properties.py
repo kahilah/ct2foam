@@ -137,7 +137,7 @@ class ctThermoTransport:
         s = np.atleast_2d(np.zeros(len(self.T)))
 
         if(self.verbose):
-            print("Evaluating thermophysical properties for mixture " + mixture_name + ": " + repr(X))
+            print("Evaluating thermophysical properties for mixture " + mixture_name + ": " + str(X))
 
         # standard property, potentially required in cp re-fitting
         gas0 = ct.Solution(self.mechanismFile)
@@ -188,7 +188,7 @@ class ctThermoTransport:
 
         if(self.verbose):
             if( minT_ref > minT_user ):
-                print("\t" + species_name + ": Warning, given min(T)=" + repr(minT_user) +  "K is out of original bounds. (" + repr(minT_ref) + 'K)' )
+                print("\t" + species_name + ": Warning, given min(T)=" + str(minT_user) +  "K is out of original bounds. (" + str(minT_ref) + 'K)' )
             if( maxT_ref < maxT_user ):
-                print("\t" + species_name + ": Warning, given max(T)=" + repr(maxT_user) +  "K is out of original bounds. (" + repr(maxT_ref) + 'K)' )
+                print("\t" + species_name + ": Warning, given max(T)=" + str(maxT_user) +  "K is out of original bounds. (" + str(maxT_ref) + 'K)' )
 
