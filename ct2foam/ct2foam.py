@@ -134,9 +134,9 @@ def main():
             mechanism_file=mechanism,
             mixture_name=args.mixture_name,
             mixture=args.mixture,
-            Tmin=280.0,
-            Tmax=3000.0,
-            Tmid=1000.0,
+            Tmin=args.Tlow,
+            Tmax=args.Thigh,
+            Tmid=args.Tmid,
             n=256,
             plot=True,
             fig_dir=fig_dir,
@@ -152,14 +152,15 @@ def main():
     # Generate output for individual species
     species_list = SpeciesList.from_ct_mech(
         mechanism,
-        Tmin=280.0,
-        Tmax=3000.0,
-        Tmid=1000.0,
+        Tmin=args.Tlow,
+        Tmax=args.Thigh,
+        Tmid=args.Tmid,
         n=256,
-        plot=True,
+        plot=args.plot,
         fig_dir=fig_dir,
         tol_nasa7=args.tol_nasa7,
         tol_nasa7_c0=args.tol_nasa7_c0,
+        tol_transport=args.tol_transport,
     )
     species_list.write_foam(output_dir)
     print("\nDone")
